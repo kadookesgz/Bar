@@ -179,3 +179,25 @@ async def create_payment(payload: PaymentRequest, ctx: TenantContext = Depends(g
         "remaining": str(outstanding - payload.amount),
         "order_status": order.status,
     }
+
+
+@router.get("/orders/{order_id}/balance")
+async def order_balance(order_id: UUID, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import func
+    order = await db.scalar(select(Order).where(
+        Order.id == order_id, Order.tenant_id == ctx.tenant_id,
+        Order.venue_id == ctx.venue_id,
+    ))
+    if order is None:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada.")
+    paid = await db.scalar(select(func.coalesce(func.sum(Payment.amount), 0)).where(
+        Payment.order_id == order.id, Payment.tenant_id == ctx.tenant_id,
+        Payment.venue_id == ctx.venue_id, Payment.status == "captured",
+    ))
+    paid_total = Decimal(paid or 0)
+    return {
+        "order_id": str(order.id), "order_number": order.order_number,
+        "total": str(order.total), "paid": str(paid_total),
+        "remaining": str(max(Decimal("0.00"), order.total - paid_total)),
+        "status": order.status,
+    }
