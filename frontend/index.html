@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827"><link rel="manifest" href="/manifest.webmanifest">
+<title>TPV Hostelería</title>
+<style>
+:root{--bg:#f3f5f8;--panel:#fff;--ink:#172033;--muted:#758096;--line:#e5e9f0;--nav:#111a2b;--accent:#2463eb;--green:#13845b;--amber:#b7791f;--red:#c24141}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:white;font-weight:650}button.secondary{background:#edf1f7;color:#263249}button.danger{background:#b83b3b}button:disabled{opacity:.5;cursor:not-allowed}.hidden{display:none!important}.shell{min-height:100vh;display:grid;grid-template-columns:230px 1fr}.sidebar{background:var(--nav);color:#fff;padding:22px 14px;display:flex;flex-direction:column;gap:18px}.brand{font-size:18px;font-weight:800;letter-spacing:-.4px;padding:2px 10px}.brand small{display:block;font-size:11px;color:#9eabc1;font-weight:500;letter-spacing:1.5px;margin-top:3px}.nav{display:grid;gap:5px}.nav button{background:transparent;color:#c2ccdc;text-align:left;font-weight:550}.nav button.active,.nav button:hover{background:#26344d;color:#fff}.sidefoot{margin-top:auto;color:#8f9bb0;font-size:12px;padding:8px}.main{min-width:0}.topbar{height:68px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:4}.topbar strong{font-size:16px}.topmeta{display:flex;gap:12px;align-items:center;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:#16a36a;display:inline-block;margin-right:6px}.content{padding:24px;max-width:1500px;margin:auto}.view{display:none}.view.active{display:block}.heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.heading h1{font-size:24px;margin:0;letter-spacing:-.6px}.sub{color:var(--muted);margin-top:4px}.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:20px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 3px 14px #17203308}.statlabel{color:var(--muted);font-size:12px}.statvalue{font-size:27px;font-weight:780;margin-top:5px;letter-spacing:-.8px}.twocol{grid-template-columns:1.3fr .7fr}.tablegrid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}.tablecard{border:1px solid var(--line);border-radius:13px;padding:16px;background:white;text-align:left;color:var(--ink);min-height:100px}.tablecard.occupied{border-color:#e7b95e;background:#fffaf0}.tablecard .tname{font-size:19px;font-weight:750}.tablecard .tstate{font-size:12px;color:var(--muted);margin-top:7px}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar input,.toolbar select,input,select,textarea{border:1px solid var(--line);background:white;border-radius:9px;padding:10px 11px;color:var(--ink);max-width:100%}input,select,textarea{width:100%}label{display:grid;gap:5px;color:#5d687d;font-size:12px;font-weight:650}.productgrid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}.product{background:white;border:1px solid var(--line);border-radius:13px;padding:14px;text-align:left;color:var(--ink);min-height:105px}.product:hover{border-color:#8eabed;box-shadow:0 5px 16px #2463eb12}.product strong{display:block;font-size:14px}.product span{display:block;color:var(--muted);font-size:12px;margin-top:8px}.poslayout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}.cartline{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:10px 0}.cartline small{display:block;color:var(--muted)}.cartline button{padding:5px 9px}.totalrow{display:flex;justify-content:space-between;font-weight:800;font-size:20px;margin:16px 0}.muted{color:var(--muted)}.pill{display:inline-flex;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700;background:#eef2f8;color:#58647a}.pill.green{background:#e7f7ef;color:#13764f}.pill.amber{background:#fff4db;color:#986313}.pill.red{background:#ffeded;color:#a33333}.list{display:grid;gap:10px}.listrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff}.listrow strong{display:block}.listrow small{color:var(--muted)}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formgrid .wide{grid-column:1/-1}.modalback{position:fixed;inset:0;background:#0c1526a8;display:grid;place-items:center;padding:16px;z-index:10}.modal{background:white;border-radius:16px;padding:22px;width:min(460px,100%);box-shadow:0 20px 60px #0003}.modal h2{margin:0 0 16px}.modal form{display:grid;gap:12px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}.loginwrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#111a2b,#1d3766)}.loginbox{width:min(440px,100%);background:white;padding:28px;border-radius:18px;box-shadow:0 25px 80px #0004}.loginbox h1{margin:0 0 5px}.loginbox form{display:grid;gap:13px;margin-top:20px}.notice{padding:10px 12px;border-radius:10px;background:#fff4db;color:#805515;font-size:12px}.empty{text-align:center;padding:28px;color:var(--muted)}.mobilemenu{display:none}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.sidebar{position:fixed;z-index:6;bottom:0;left:0;right:0;height:64px;padding:5px 8px;display:block}.brand,.sidefoot{display:none}.nav{display:flex;justify-content:space-around;gap:2px;height:100%}.nav button{font-size:10px;text-align:center;padding:8px 5px;flex:1}.main{padding-bottom:64px}.topbar{padding:0 16px}.content{padding:16px}.stats{grid-template-columns:repeat(2,1fr)}.twocol{grid-template-columns:1fr}.poslayout{grid-template-columns:1fr}.cartcard{order:-1}.heading h1{font-size:21px}}
+@media(max-width:520px){.stats{gap:9px}.card{padding:14px}.statvalue{font-size:23px}.formgrid{grid-template-columns:1fr}.formgrid .wide{grid-column:auto}.topmeta span:last-child{display:none}}
+</style>
+</head>
+<body>
+<div id="auth" class="loginwrap">
+  <div class="loginbox">
+    <div style="font-size:12px;letter-spacing:2px;color:#2463eb;font-weight:800">TPV HOSTELERÍA · V2</div>
+    <h1 id="authTitle">Bienvenido</h1><div class="sub" id="authSubtitle">Accede a tu establecimiento</div>
+    <div id="authError" class="notice hidden" style="margin-top:14px"></div>
+    <form id="loginForm">
+      <label>Identificador de empresa<input name="tenant_slug" placeholder="mi-bar" required></label>
+      <label>Correo electrónico<input name="email" type="email" required></label>
+      <label>Contraseña<input name="password" type="password" required></label>
+      <button>Entrar al TPV</button>
+      <button type="button" class="secondary" id="showSetup">Primera instalación</button>
+    </form>
+    <form id="setupForm" class="hidden">
+      <label>Nombre de la empresa<input name="company_name" required placeholder="Mi Bar"></label>
+      <label>Nombre del establecimiento<input name="venue_name" required placeholder="Local principal"></label>
+      <label>Identificador de empresa<input name="tenant_slug" placeholder="mi-bar"></label>
+      <label>Nombre del administrador<input name="admin_name" required></label>
+      <label>Correo del administrador<input name="admin_email" type="email" required></label>
+      <label>Contraseña (mínimo 12 caracteres)<input name="admin_password" type="password" minlength="12" required></label>
+      <button>Crear empresa y entrar</button>
+      <button type="button" class="secondary" id="showLogin">Volver al acceso</button>
+    </form>
+    <p class="muted" style="font-size:11px;margin-top:20px">El primer arranque crea la empresa y el usuario administrador en el servidor local.</p>
+  </div>
+</div>
+<div id="app" class="shell hidden">
+  <aside class="sidebar">
+    <div class="brand">TPV HOSTELERÍA<small>GESTIÓN INTEGRAL</small></div>
+    <nav class="nav">
+      <button data-view="dashboard" class="active">▦ Inicio</button>
+      <button data-view="pos">＋ TPV</button>
+      <button data-view="tables">▤ Sala</button>
+      <button data-view="kitchen">♨ Cocina</button>
+      <button data-view="products">▧ Carta</button>
+      <button data-view="cash">€ Caja</button>
+    </nav>
+    <div class="sidefoot">Modo local-first · V2<br><a href="/docs" style="color:#aebbd0">API técnica</a></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><strong id="pageTitle">Resumen</strong><div class="topmeta"><span><i class="dot"></i>Servidor local</span><span id="venueName">Establecimiento</span><button class="secondary" id="logout" style="padding:7px 10px">Salir</button></div></header>
+    <div class="content">
+      <section id="dashboard" class="view active">
+        <div class="heading"><div><h1>Resumen del negocio</h1><div class="sub">Actividad del establecimiento</div></div><button onclick="loadAll()">↻ Actualizar</button></div>
+        <div class="grid stats">
+          <div class="card"><div class="statlabel">Comandas abiertas</div><div class="statvalue" id="statOrders">0</div></div>
+          <div class="card"><div class="statlabel">Productos activos</div><div class="statvalue" id="statProducts">0</div></div>
+          <div class="card"><div class="statlabel">Mesas configuradas</div><div class="statvalue" id="statTables">0</div></div>
+          <div class="card"><div class="statlabel">Caja</div><div class="statvalue" id="statCash" style="font-size:19px">Cerrada</div></div>
+        </div>
+        <div class="grid twocol">
+          <div class="card"><div class="heading"><div><h2 style="font-size:17px;margin:0">Comandas activas</h2><div class="sub">Seguimiento de servicio</div></div><button class="secondary" onclick="switchView('kitchen')">Ver cocina</button></div><div id="dashboardOrders" class="list"></div></div>
+          <div class="card"><h2 style="font-size:17px;margin:0 0 12px">Accesos rápidos</h2><div class="list">
+            <button onclick="switchView('pos')">＋ Nueva venta</button><button class="secondary" onclick="switchView('tables')">▤ Gestionar sala</button><button class="secondary" onclick="switchView('products')">＋ Añadir productos</button><button class="secondary" onclick="switchView('cash')">€ Abrir o cerrar caja</button>
+          </div></div>
+        </div>
+      </section>
+      <section id="pos" class="view">
+        <div class="heading"><div><h1>Punto de venta</h1><div class="sub">Selecciona productos y crea una comanda</div></div><span class="pill green">TPV local</span></div>
+        <div class="poslayout">
+          <div>
+            <div class="toolbar" style="margin-bottom:12px"><select id="posCategory" style="width:auto"><option value="">Todas las familias</option></select><input id="productSearch" placeholder="Buscar producto…" style="max-width:260px"></div>
+            <div id="posProducts" class="grid productgrid"></div>
+          </div>
+          <div class="card cartcard">
+            <div class="heading"><div><h2 style="font-size:17px;margin:0">Comanda</h2><div class="sub">Cuenta actual</div></div><button class="secondary" onclick="clearCart()">Vaciar</button></div>
+            <label>Mesa / servicio<select id="orderTable"><option value="">Barra / sin mesa</option></select></label>
+            <div id="cartLines" style="margin-top:12px"><div class="empty">Añade productos a la comanda</div></div>
+            <div class="totalrow"><span>Total</span><span id="cartTotal">0,00 €</span></div>
+            <label>Notas de la comanda<textarea id="orderNotes" rows="2" placeholder="Observaciones para cocina"></textarea></label>
+            <button id="createOrder" style="width:100%;margin-top:12px" disabled>Crear comanda</button>
+          </div>
+        </div>
+      </section>
+      <section id="tables" class="view">
+        <div class="heading"><div><h1>Sala y mesas</h1><div class="sub">Ocupación y cuentas abiertas</div></div><button onclick="newTable()">＋ Nueva mesa</button></div>
+        <div id="tableGrid" class="grid tablegrid"></div>
+      </section>
+      <section id="kitchen" class="view">
+        <div class="heading"><div><h1>Pantalla de cocina</h1><div class="sub">Comandas enviadas desde sala y QR</div></div><button class="secondary" onclick="loadKitchen()">↻ Actualizar</button></div>
+        <div id="kitchenQueue" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))"></div>
+      </section>
+      <section id="products" class="view">
+        <div class="heading"><div><h1>Carta y productos</h1><div class="sub">Familias, precios, impuestos y alérgenos</div></div><div class="toolbar"><button class="secondary" onclick="newCategory()">＋ Familia</button><button onclick="newProduct()">＋ Producto</button></div></div>
+        <div class="toolbar" style="margin-bottom:12px"><input id="catalogSearch" placeholder="Buscar en la carta…" style="max-width:320px"></div>
+        <div id="catalogList" class="list"></div>
+      </section>
+      <section id="cash" class="view">
+        <div class="heading"><div><h1>Caja y cobros</h1><div class="sub">Turnos, arqueos y pagos parciales</div></div></div>
+        <div class="grid twocol">
+          <div class="card"><h2 style="font-size:17px;margin:0 0 12px">Turno de caja</h2><div id="cashStatus" class="muted">Consultando…</div><div id="cashActions" style="margin-top:15px"></div></div>
+          <div class="card"><h2 style="font-size:17px;margin:0 0 12px">Cuentas pendientes</h2><div id="pendingPayments" class="list"></div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+<div id="modal" class="modalback hidden"><div class="modal"><h2 id="modalTitle">Formulario</h2><form id="modalForm"></form></div></div>
+<script>
+const API = "";
+let token = localStorage.getItem("tpv_token") || "";
+let session = JSON.parse(localStorage.getItem("tpv_session") || "null");
+let categories=[], products=[], tables=[], orders=[], cart=[], shift=null, kitchen=[];
+const money = n => new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(Number(n||0));
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function api(path,opts={}) {
+ const headers={"Content-Type":"application/json",...(opts.headers||{})};
+ if(token) headers.Authorization="Bearer "+token;
+ const res=await fetch(API+path,{...opts,headers});
+ const data= res.status===204 ? null : await res.json().catch(()=>({detail:"Respuesta no válida del servidor"}));
+ if(!res.ok) throw new Error(data.detail||("Error "+res.status));
+ return data;
+}
+function saveSession(data){token=data.access_token;session=data;localStorage.setItem("tpv_token",token);localStorage.setItem("tpv_session",JSON.stringify(data));showApp();}
+function showError(msg){const e=document.getElementById("authError");e.textContent=msg;e.classList.remove("hidden")}
+function showApp(){document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");document.getElementById("venueName").textContent=session?.venue?.name||"";loadAll().catch(e=>alert(e.message))}
+function logout(){token="";session=null;localStorage.removeItem("tpv_token");localStorage.removeItem("tpv_session");document.getElementById("app").classList.add("hidden");document.getElementById("auth").classList.remove("hidden")}
+document.getElementById("logout").onclick=logout;
+document.getElementById("showSetup").onclick=()=>{document.getElementById("loginForm").classList.add("hidden");document.getElementById("setupForm").classList.remove("hidden");document.getElementById("authTitle").textContent="Crear establecimiento";document.getElementById("authSubtitle").textContent="Configuración inicial del servidor local"};
+document.getElementById("showLogin").onclick=()=>{document.getElementById("setupForm").classList.add("hidden");document.getElementById("loginForm").classList.remove("hidden");document.getElementById("authTitle").textContent="Bienvenido";document.getElementById("authSubtitle").textContent="Accede a tu establecimiento"};
+document.getElementById("loginForm").onsubmit=async e=>{e.preventDefault();try{const d=Object.fromEntries(new FormData(e.target));saveSession(await api("/api/v1/auth/login",{method:"POST",body:JSON.stringify(d)}))}catch(err){showError(err.message)}};
+document.getElementById("setupForm").onsubmit=async e=>{e.preventDefault();try{const d=Object.fromEntries(new FormData(e.target));saveSession(await api("/api/v1/setup/bootstrap",{method:"POST",body:JSON.stringify(d)}))}catch(err){showError(err.message)}};
+async function loadAll(){
+ const [c,p,t,o,s,r]=await Promise.all([
+  api("/api/v1/categories"),api("/api/v1/products"),api("/api/v1/floor/tables"),api("/api/v1/orders"),api("/api/v1/cash/shifts/current"),api("/api/v1/cash/registers")
+ ]);
+ categories=c;products=p;tables=t;orders=o;shift=s;registers=r;
+ renderAll();await loadKitchen();
+}
+let registers=[];
+function renderAll(){
+ document.getElementById("statOrders").textContent=orders.length;
+ document.getElementById("statProducts").textContent=products.length;
+ document.getElementById("statTables").textContent=tables.length;
+ document.getElementById("statCash").textContent=shift?"Abierta":"Cerrada";
+ document.getElementById("dashboardOrders").innerHTML=orders.slice(0,6).map(o=>`<div class="listrow"><div><strong>Comanda #${o.order_number}</strong><small>${o.table_id?"Mesa":"Barra"} · ${new Date(o.opened_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</small></div><div><b>${money(o.total)}</b><br><span class="pill amber">${esc(o.status)}</span></div></div>`).join("")||'<div class="empty">No hay comandas abiertas</div>';
+ const cat=document.getElementById("posCategory");cat.innerHTML='<option value="">Todas las familias</option>'+categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
+ const tableSelect=document.getElementById("orderTable");tableSelect.innerHTML='<option value="">Barra / sin mesa</option>'+tables.map(t=>`<option value="${t.id}">${esc(t.label)}</option>`).join("");
+ renderProducts();renderCatalog();renderTables();renderCart();renderCash();
+}
+function switchView(id){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===id));document.getElementById("pageTitle").textContent=({dashboard:"Resumen",pos:"Punto de venta",tables:"Sala y mesas",kitchen:"Cocina",products:"Carta y productos",cash:"Caja y cobros"})[id];if(id==="cash")renderCash();if(id==="kitchen")loadKitchen()}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+function renderProducts(){const cat=document.getElementById("posCategory").value,search=document.getElementById("productSearch").value.toLowerCase();const list=products.filter(p=>(!cat||p.category_id===cat)&&p.name.toLowerCase().includes(search));document.getElementById("posProducts").innerHTML=list.map(p=>`<button class="product" onclick="addCart('${p.id}')"><strong>${esc(p.name)}</strong><span>${money(p.price)}</span></button>`).join("")||'<div class="empty">No hay productos. Añádelos en Carta.</div>'}
+document.getElementById("posCategory").onchange=renderProducts;document.getElementById("productSearch").oninput=renderProducts;
+function addCart(id){const p=products.find(x=>x.id===id);if(!p)return;const line=cart.find(x=>x.product.id===id);if(line)line.qty++;else cart.push({product:p,qty:1});renderCart()}
+function changeQty(id,delta){const line=cart.find(x=>x.product.id===id);if(!line)return;line.qty+=delta;if(line.qty<=0)cart=cart.filter(x=>x.product.id!==id);renderCart()}
+function clearCart(){cart=[];renderCart()}
+function renderCart(){document.getElementById("cartLines").innerHTML=cart.map(x=>`<div class="cartline"><div><strong>${esc(x.product.name)}</strong><small>${money(x.product.price)} × ${x.qty}</small></div><div class="toolbar"><button class="secondary" onclick="changeQty('${x.product.id}',-1)">−</button><b>${x.qty}</b><button class="secondary" onclick="changeQty('${x.product.id}',1)">＋</button></div></div>`).join("")||'<div class="empty">Añade productos a la comanda</div>';document.getElementById("cartTotal").textContent=money(cart.reduce((s,x)=>s+Number(x.product.price)*x.qty,0));document.getElementById("createOrder").disabled=!cart.length}
+document.getElementById("createOrder").onclick=async()=>{try{const payload={table_id:document.getElementById("orderTable").value||null,channel:"dine_in",notes:document.getElementById("orderNotes").value,lines:cart.map(x=>({product_id:x.product.id,quantity:x.qty}))};const order=await api("/api/v1/orders",{method:"POST",body:JSON.stringify(payload)});await api("/api/v1/orders/"+order.id+"/send-to-kitchen",{method:"POST"});clearCart();document.getElementById("orderNotes").value="";await loadAll();alert("Comanda #"+order.order_number+" enviada a cocina.");}catch(e){alert(e.message)}};
+function renderTables(){const active=new Set(orders.filter(o=>o.table_id).map(o=>o.table_id));document.getElementById("tableGrid").innerHTML=tables.map(t=>`<button class="tablecard ${active.has(t.id)?"occupied":""}" onclick="selectTable('${t.id}')"><div class="tname">${esc(t.label)}</div><div class="tstate">${active.has(t.id)?"● Ocupada":"○ Libre"} · ${t.capacity} plazas</div></button>`).join("")||'<div class="empty">Todavía no hay mesas configuradas. Pulsa Nueva mesa.</div>'}
+function selectTable(id){switchView("pos");document.getElementById("orderTable").value=id}
+function renderCatalog(){const q=document.getElementById("catalogSearch").value.toLowerCase();document.getElementById("catalogList").innerHTML=products.filter(p=>p.name.toLowerCase().includes(q)).map(p=>`<div class="listrow"><div><strong>${esc(p.name)}</strong><small>${esc(categories.find(c=>c.id===p.category_id)?.name||"Sin familia")} · IVA ${p.tax_rate}% · ${(p.allergens||[]).join(", ")||"Sin alérgenos indicados"}</small></div><b>${money(p.price)}</b></div>`).join("")||'<div class="empty">No hay productos registrados</div>'}
+document.getElementById("catalogSearch").oninput=renderCatalog;
+function modal(title,fields,onSubmit){document.getElementById("modalTitle").textContent=title;const form=document.getElementById("modalForm");form.innerHTML=fields+'<div class="actions"><button type="button" class="secondary" onclick="closeModal()">Cancelar</button><button>Guardar</button></div>';document.getElementById("modal").classList.remove("hidden");form.onsubmit=async e=>{e.preventDefault();try{await onSubmit(Object.fromEntries(new FormData(form)));closeModal();await loadAll()}catch(err){alert(err.message)}}}
+function closeModal(){document.getElementById("modal").classList.add("hidden")}
+function newCategory(){modal("Nueva familia",'<label>Nombre<input name="name" required></label>',d=>api("/api/v1/categories",{method:"POST",body:JSON.stringify(d)}))}
+function newProduct(){modal("Nuevo producto",'<label>Nombre<input name="name" required></label><div class="formgrid"><label>Precio (€)<input name="price" type="number" min="0" step=".01" required></label><label>IVA (%)<select name="tax_rate"><option>10</option><option>21</option><option>4</option><option>0</option></select></label></div><label>Familia<select name="category_id"><option value="">Sin familia</option>'+categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")+'</select></label><label>Alérgenos (separados por comas)<input name="allergens"></label><label><span><input type="checkbox" name="track_stock" value="true" style="width:auto"> Controlar stock</span></label>',d=>api("/api/v1/products",{method:"POST",body:JSON.stringify({...d,price:Number(d.price),tax_rate:Number(d.tax_rate),category_id:d.category_id||null,allergens:d.allergens?d.allergens.split(",").map(x=>x.trim()).filter(Boolean):[],track_stock:d.track_stock==="true"})}))}
+function newTable(){modal("Nueva mesa",'<div class="formgrid"><label>Código<input name="code" required placeholder="M01"></label><label>Nombre visible<input name="label" required placeholder="Mesa 1"></label><label>Plazas<input name="capacity" type="number" min="1" value="2"></label><label>Forma<select name="shape"><option>square</option><option>round</option><option>rectangle</option></select></label></div>',d=>api("/api/v1/floor/tables",{method:"POST",body:JSON.stringify({...d,capacity:Number(d.capacity),pos_x:0,pos_y:0})}))}
+async function loadKitchen(){try{kitchen=await api("/api/v1/orders/kitchen/queue");document.getElementById("kitchenQueue").innerHTML=kitchen.length?kitchen.map(k=>`<div class="card"><div class="toolbar" style="justify-content:space-between"><b>Comanda #${k.order_number}</b><span class="pill amber">${esc(k.order_status)}</span></div><h3>${esc(k.product_name)} × ${esc(k.quantity)}</h3><div class="sub">${k.table_id?"Mesa":"Barra"} · ${new Date(k.opened_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}</div><div class="muted" style="margin:10px 0">${esc(k.notes||"Sin observaciones")}</div><button class="secondary" onclick="alert('El cambio de estado de cocina se habilitará en el siguiente incremento.')">Marcar preparado</button></div>`).join(""):'<div class="empty">No hay comandas pendientes de cocina</div>'}catch(e){document.getElementById("kitchenQueue").innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+async function renderCash(){try{shift=await api("/api/v1/cash/shifts/current");registers=await api("/api/v1/cash/registers");document.getElementById("cashStatus").innerHTML=shift?'<span class="pill green">Turno abierto</span><p>Fondo inicial: <b>'+money(shift.opening_float)+'</b></p><p>Efectivo esperado: <b>'+money(shift.expected_cash)+'</b></p>':'<span class="pill amber">No hay turno abierto</span>';document.getElementById("cashActions").innerHTML=shift?'<button class="danger" onclick="closeShift()">Cerrar turno y hacer arqueo</button>':'<button onclick="openShift()">Abrir turno de caja</button>';const pending=orders.filter(o=>o.status!=="paid");document.getElementById("pendingPayments").innerHTML=pending.map(o=>`<div class="listrow"><div><strong>Cuenta #${o.order_number}</strong><small>${money(o.total)} · ${esc(o.status)}</small></div><button onclick="takePayment('${o.id}',${o.total})">Cobrar</button></div>`).join("")||'<div class="empty">No hay cuentas pendientes</div>'}catch(e){document.getElementById("cashStatus").textContent=e.message}}
+async function openShift(){if(!registers.length){alert("No hay caja configurada.");return}const amount=prompt("Fondo inicial en efectivo (€)","100");if(amount===null)return;try{await api("/api/v1/cash/shifts/open",{method:"POST",body:JSON.stringify({register_id:registers[0].id,opening_float:Number(amount)})});await loadAll()}catch(e){alert(e.message)}}
+async function closeShift(){const amount=prompt("Efectivo contado en el cajón (€)",shift.expected_cash);if(amount===null)return;try{await api("/api/v1/cash/shifts/"+shift.id+"/close",{method:"POST",body:JSON.stringify({counted_cash:Number(amount)})});await loadAll()}catch(e){alert(e.message)}}
+async function takePayment(id,total){const method=prompt("Forma de pago: cash / card / transfer / other","cash");if(!method)return;const amount=prompt("Importe a cobrar (€)",total);if(amount===null)return;try{const r=await api("/api/v1/cash/payments",{method:"POST",body:JSON.stringify({order_id:id,method,amount:Number(amount)})});alert("Cobro registrado. Pendiente: "+money(r.remaining));await loadAll()}catch(e){alert(e.message)}}
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
+(async()=>{if(token&&session){showApp();return}try{const s=await api("/api/v1/setup/status");if(s.setup_required){document.getElementById("showSetup").click()}}catch(e){showError("No se puede conectar con el servidor local. Comprueba que esté iniciado.")}})();
+setInterval(()=>{if(token&&!document.hidden)loadAll().catch(()=>{})},15000);
+</script>
+</body></html>
