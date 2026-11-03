@@ -1,4 +1,4 @@
-// TPV V2 UI extensions: reservations, stock and live kitchen actions.
+// TPV V2 UI extensions: reservations, stock, QR and kitchen workflows.
 (function () {
   const nav = document.querySelector(".nav");
   const cashNav = nav.querySelector('[data-view="cash"]');
@@ -14,17 +14,17 @@
   addNav("inventory", "▤ Almacén");
 
   const cashSection = document.getElementById("cash");
-  const reservationsSection = document.createElement("section");
-  reservationsSection.id = "reservations";
-  reservationsSection.className = "view";
-  reservationsSection.innerHTML = '<div class="heading"><div><h1>Reservas</h1><div class="sub">Agenda de clientes y asignación de mesas</div></div><button id="newReservationBtn">＋ Nueva reserva</button></div><div id="reservationList" class="list"></div>';
-  const inventorySection = document.createElement("section");
-  inventorySection.id = "inventory";
-  inventorySection.className = "view";
-  inventorySection.innerHTML = '<div class="heading"><div><h1>Almacén</h1><div class="sub">Existencias, costes y movimientos de inventario</div></div><button id="newStockItemBtn">＋ Artículo</button></div><div id="inventoryList" class="list"></div>';
-  cashSection.parentNode.insertBefore(reservationsSection, cashSection);
-  cashSection.parentNode.insertBefore(inventorySection, cashSection);
-
+  ["reservations", "inventory"].forEach(function (id) {
+    const section = document.createElement("section");
+    section.id = id;
+    section.className = "view";
+    if (id === "reservations") {
+      section.innerHTML = '<div class="heading"><div><h1>Reservas</h1><div class="sub">Agenda de clientes y asignación de mesas</div></div><button id="newReservationBtn">＋ Nueva reserva</button></div><div id="reservationList" class="list"></div>';
+    } else {
+      section.innerHTML = '<div class="heading"><div><h1>Almacén</h1><div class="sub">Existencias, costes y movimientos de inventario</div></div><button id="newStockItemBtn">＋ Artículo</button></div><div id="inventoryList" class="list"></div>';
+    }
+    cashSection.parentNode.insertBefore(section, cashSection);
+  });
   document.getElementById("newReservationBtn").onclick = newReservation;
   document.getElementById("newStockItemBtn").onclick = newStockItem;
 
@@ -90,8 +90,11 @@
         (item.low_stock ? '<span class="pill red">Stock bajo</span>' : '') +
         '</strong><small>' + esc(item.unit) + ' · Coste ' + money(item.cost_per_unit) + ' / unidad</small></div>' +
         '<div style="text-align:right"><b>' + esc(item.current_stock) + ' ' + esc(item.unit) + '</b><br>' +
-        '<button class="secondary" style="padding:6px 9px;margin-top:5px" onclick="adjustStock(\\'' + item.id + '\\')">Movimiento</button></div></div>';
+        '<button class="secondary stock-movement" data-item-id="' + item.id + '" style="padding:6px 9px;margin-top:5px">Movimiento</button></div></div>';
     }).join("") || '<div class="empty">No hay artículos de almacén</div>';
+    root.querySelectorAll(".stock-movement").forEach(function (button) {
+      button.onclick = function () { adjustStock(button.dataset.itemId); };
+    });
   };
 
   window.newStockItem = function () {
@@ -109,12 +112,12 @@
   };
 
   window.adjustStock = async function (id) {
-    const quantity = prompt("Cantidad del movimiento. Usa un número positivo para entrada y negativo para salida.");
+    const quantity = prompt("Cantidad del movimiento. Positivo para entrada y negativo para salida.");
     if (quantity === null || !Number(quantity)) return;
-    const movement_type = Number(quantity) < 0 ? "sale" : "purchase";
     try {
       await api("/api/v1/inventory/items/" + id + "/movements", {method:"POST", body:JSON.stringify({
-        quantity:Math.abs(Number(quantity)), movement_type:movement_type, note:"Movimiento manual desde TPV"
+        quantity:Math.abs(Number(quantity)), movement_type:Number(quantity) < 0 ? "sale" : "purchase",
+        note:"Movimiento manual desde TPV"
       })});
       await loadAll();
     } catch (err) { alert(err.message); }
@@ -129,8 +132,11 @@
           '</b><span class="pill amber">' + esc(k.order_status) + '</span></div><h3>' + esc(k.product_name) + ' × ' +
           esc(k.quantity) + '</h3><div class="sub">' + (k.table_id ? "Mesa" : "Barra") + ' · ' +
           new Date(k.opened_at).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}) + '</div><div class="muted" style="margin:10px 0">' +
-          esc(k.notes || "Sin observaciones") + '</div><button class="secondary" onclick="setKitchenStatus(\\'' + k.line_id + '\\',\\'ready\\')">Marcar preparado</button></div>';
+          esc(k.notes || "Sin observaciones") + '</div><button class="secondary kitchen-ready" data-line-id="' + k.line_id + '">Marcar preparado</button></div>';
       }).join("") || '<div class="empty">No hay comandas pendientes de cocina</div>';
+      root.querySelectorAll(".kitchen-ready").forEach(function (button) {
+        button.onclick = function () { setKitchenStatus(button.dataset.lineId, "ready"); };
+      });
     } catch (err) { document.getElementById("kitchenQueue").innerHTML = '<div class="empty">' + esc(err.message) + '</div>'; }
   };
 
@@ -145,24 +151,23 @@
     const root = document.getElementById("tableGrid");
     if (!root) return;
     const occupied = new Set((orders || []).filter(function (o) { return o.table_id; }).map(function (o) { return o.table_id; }));
-    root.innerHTML = "";
-    (tables || []).forEach(function (table) {
-      const card = document.createElement("div");
-      card.className = "tablecard" + (occupied.has(table.id) ? " occupied" : "");
-      card.innerHTML = '<div class="tname">' + esc(table.label) + '</div><div class="tstate">' +
+    root.innerHTML = tables.map(function (table) {
+      return '<div class="tablecard ' + (occupied.has(table.id) ? "occupied" : "") + '">' +
+        '<div class="tname">' + esc(table.label) + '</div><div class="tstate">' +
         (occupied.has(table.id) ? "● Ocupada" : "○ Libre") + ' · ' + table.capacity + ' plazas</div>' +
-        '<div class="toolbar" style="margin-top:10px"><button class="secondary open-table" style="padding:6px 9px">Abrir</button><button class="qr-table" style="padding:6px 9px">QR</button></div>';
-      card.querySelector(".open-table").onclick = function () { selectTable(table.id); };
-      card.querySelector(".qr-table").onclick = async function () {
+        '<div class="toolbar" style="margin-top:10px"><button class="secondary open-table" data-table-id="' + table.id + '" style="padding:6px 9px">Abrir</button>' +
+        '<button class="make-qr" data-table-id="' + table.id + '" style="padding:6px 9px">QR</button></div></div>';
+    }).join("") || '<div class="empty">Todavía no hay mesas configuradas. Pulsa Nueva mesa.</div>';
+    root.querySelectorAll(".open-table").forEach(function (button) {
+      button.onclick = function () { selectTable(button.dataset.tableId); };
+    });
+    root.querySelectorAll(".make-qr").forEach(function (button) {
+      button.onclick = async function () {
         try {
-          const result = await api("/api/v1/floor/tables/" + table.id + "/qr-token", {method:"POST"});
-          const url = location.origin + result.menu_path;
-          prompt("Enlace privado de carta QR para " + table.label + ". Copia este enlace para generar/imprimir el QR:", url);
+          const result = await api("/api/v1/floor/tables/" + button.dataset.tableId + "/qr-token", {method:"POST"});
+          prompt("Enlace privado de carta QR. Copia este enlace para compartirlo:", location.origin + result.menu_path);
         } catch (err) { alert(err.message); }
       };
-      root.appendChild(card);
     });
-    if (!tables.length) root.innerHTML = '<div class="empty">Todavía no hay mesas configuradas. Pulsa Nueva mesa.</div>';
   };
-
 })();
