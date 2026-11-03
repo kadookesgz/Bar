@@ -111,6 +111,30 @@ async def create_order(payload: OrderCreate, ctx: TenantContext = Depends(get_te
             notes=line.notes,
         ))
 
+    if payload.table_id:
+        existing_order = await db.scalar(select(Order).where(
+            Order.table_id == payload.table_id,
+            Order.tenant_id == ctx.tenant_id,
+            Order.venue_id == ctx.venue_id,
+            Order.status.in_(["open", "sent", "preparing", "ready"]),
+        ).order_by(Order.opened_at.desc()).with_for_update())
+        if existing_order:
+            for line in order_lines:
+                line.order_id = existing_order.id
+                db.add(line)
+            existing_order.subtotal = money(existing_order.subtotal + subtotal)
+            existing_order.tax_total = money(existing_order.tax_total + tax_total)
+            existing_order.total = money(existing_order.subtotal - existing_order.discount_total)
+            existing_order.status = "sent"
+            db.add(AuditLog(
+                tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, actor_user_id=ctx.user_id,
+                action="order.lines_added_from_pos", entity_type="order", entity_id=existing_order.id,
+                details={"count": len(order_lines)},
+            ))
+            await db.commit()
+            await db.refresh(existing_order)
+            return existing_order
+
     order = Order(
         tenant_id=ctx.tenant_id,
         venue_id=ctx.venue_id,
