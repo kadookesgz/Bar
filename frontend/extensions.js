@@ -400,10 +400,11 @@
         return '<div class="listrow"><div><strong>Comanda #' + (p.order_number || "—") + ' · ' + money(p.amount) + '</strong>' +
           '<small>' + esc(p.method) + ' · ' + new Date(p.paid_at).toLocaleString("es-ES") +
           ' · Reembolsado ' + money(p.refunded) + '</small></div><div style="text-align:right"><b>Pendiente ' + money(p.refundable) + '</b><br>' +
+          '<button class="secondary receipt-button" data-order-id="' + p.order_id + '" style="padding:6px 9px;margin-top:5px">Ticket</button>' +
           (Number(p.refundable) > 0 ? '<button class="danger refund-button" data-payment-id="' + p.id + '" style="padding:6px 9px;margin-top:5px">Reembolsar</button>' : '<span class="pill">Liquidado</span>') +
           '</div></div>';
       }).join("") || '<div class="empty">Todavía no hay cobros registrados</div>';
-      root.querySelectorAll(".refund-button").forEach(function (button) {
+      root.querySelectorAll(".receipt-button").forEach(function (button) {\n        button.onclick = function () { printReceipt(button.dataset.orderId); };\n      });\n      root.querySelectorAll(".refund-button").forEach(function (button) {
         button.onclick = function () { refundPayment(button.dataset.paymentId); };
       });
     } catch (err) { root.innerHTML = '<div class="notice">' + esc(err.message) + '</div>'; }
@@ -428,6 +429,21 @@
   window.loadAll = async function () {
     await loadAllBeforePaymentHistory();
     await loadPaymentHistory();
+  };
+
+
+  window.printReceipt = async function (orderId) {
+    const popup = window.open("about:blank", "_blank");
+    if (!popup) { alert("Permite las ventanas emergentes para imprimir el ticket."); return; }
+    try {
+      const response = await fetch("/api/v1/orders/" + orderId + "/receipt", {
+        headers: {Authorization:"Bearer " + token}
+      });
+      if (!response.ok) throw new Error("No se pudo obtener el ticket.");
+      popup.document.open();
+      popup.document.write(await response.text());
+      popup.document.close();
+    } catch (err) { popup.close(); alert(err.message); }
   };
 
 })();
