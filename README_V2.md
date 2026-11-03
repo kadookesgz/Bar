@@ -11,8 +11,8 @@ La rama `v2-hybrid-architecture` desarrolla la V2. La versión anterior de pedid
 - Aislamiento de consultas por empresa y establecimiento.
 - Catálogo: familias, productos, precios, IVA, alérgenos y grupos de modificadores/suplementos.
 - Sala: zonas, mesas y enlaces QR con token revocable.
-- TPV: creación de comandas, selección de mesa, modificadores, canales local/recogida/delivery y envío a cocina.
-- Caja: apertura/cierre de turno, arqueo y pagos parciales por efectivo/tarjeta/transferencia.
+- TPV: creación de comandas, cuentas abiertas por mesa, modificadores, canales local/recogida/delivery, división de cuentas y descuentos.
+- Caja: apertura/cierre de turno, arqueo, pagos parciales, varios métodos y registro de reembolsos.
 - Cocina: cola KDS y estados de preparación; consumo de ingredientes al terminar platos con receta.
 - Pedidos QR: QR PNG imprimible por mesa, carta móvil, selección de productos y envío directo a cocina.
 - Reservas: agenda básica y estados.
@@ -26,7 +26,7 @@ La rama `v2-hybrid-architecture` desarrolla la V2. La versión anterior de pedid
 - Clientes: fichas y puntos de fidelización.
 - Informes: ventas diarias, ticket medio, productos principales y formas de pago.
 - Base de datos PostgreSQL y migraciones Alembic.
-- PWA responsive para pantallas Windows, tablets y Android.
+- PWA responsive para pantallas Windows, tablets y Android; vista de ticket imprimible desde navegador.\n- Cola local outbox con eventos de ventas, cobros, reservas y movimientos de stock, preparada para sincronización futura.
 
 ## Arranque en Windows
 
@@ -71,7 +71,7 @@ Los permisos están en una primera iteración y deben revisarse antes de despleg
 
 - La venta y la base de datos se ejecutan en el servidor local PostgreSQL.
 - La PWA se sirve desde el servidor local; Internet no es necesario para el acceso en la LAN.
-- El modo híbrido está diseñado, pero el sincronizador local-nube y la consola SaaS central todavía no están implementados.
+- La cola local de sincronización ya registra eventos, pero el sincronizador local-nube y la consola SaaS central todavía no están implementados.
 - La aplicación todavía no debe exponerse directamente a Internet.
 - No hay integración real con datáfonos, CashDro, impresoras ESC/POS ni plataformas externas de delivery.
 - La impresión térmica automática está pendiente; por ahora se puede usar impresión del navegador.
