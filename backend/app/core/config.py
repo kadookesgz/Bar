@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "postgresql+asyncpg://tpv:tpv_dev_only@db:5432/tpv"
     cors_origins: str = "http://localhost:3000"
+    jwt_secret: str = "DEV_ONLY_CHANGE_THIS_SECRET_BEFORE_DEPLOYMENT"
+    jwt_expire_minutes: int = 720
 
     model_config = SettingsConfigDict(
         env_file=".env",
