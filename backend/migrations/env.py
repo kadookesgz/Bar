@@ -11,7 +11,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 settings = get_settings()
-sync_url = settings.database_url.replace("+asyncpg", "")
+sync_url = settings.database_url.replace("+asyncpg", "+psycopg")
 config.set_main_option("sqlalchemy.url", sync_url)
 target_metadata = Base.metadata
 
