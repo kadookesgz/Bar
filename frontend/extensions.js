@@ -360,4 +360,34 @@
     } catch (err) { alert(err.message); }
   };
 
+
+  const venueSwitcher = document.getElementById("venueSwitcher");
+  const previousLoadAll = loadAll;
+  window.loadAll = async function () {
+    await previousLoadAll();
+    try {
+      const venues = await api("/api/v1/venues");
+      const currentId = session && session.venue ? session.venue.id : "";
+      venueSwitcher.innerHTML = venues.map(function (v) {
+        return '<option value="' + v.id + '">' + esc(v.name) + '</option>';
+      }).join("");
+      venueSwitcher.value = currentId;
+      venueSwitcher.disabled = venues.length < 2;
+    } catch (err) { console.error(err); }
+  };
+  venueSwitcher.onchange = async function () {
+    if (!venueSwitcher.value || !session || venueSwitcher.value === session.venue.id) return;
+    try {
+      const result = await api("/api/v1/auth/switch-venue", {
+        method:"POST", body:JSON.stringify({venue_id:venueSwitcher.value})
+      });
+      token = result.access_token;
+      session.venue = result.venue;
+      localStorage.setItem("tpv_token", token);
+      localStorage.setItem("tpv_session", JSON.stringify(session));
+      document.getElementById("venueName").textContent = result.venue.name;
+      await loadAll();
+    } catch (err) { alert(err.message); venueSwitcher.value = session.venue.id; }
+  };
+
 })();
