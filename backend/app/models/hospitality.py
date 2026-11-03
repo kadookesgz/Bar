@@ -93,6 +93,7 @@ class DiningTable(ScopedRecord, Base):
     pos_x: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     pos_y: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     shape: Mapped[str] = mapped_column(String(20), default="square", nullable=False)
+    qr_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
