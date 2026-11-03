@@ -79,8 +79,12 @@ class OrderLineCreate(BaseModel):
 
 class OrderCreate(BaseModel):
     table_id: UUID | None = None
-    channel: str = "dine_in"
+    channel: str = Field(default="dine_in", pattern="^(dine_in|takeaway|delivery|qr|online|external)$")
     notes: str | None = None
+    customer_name: str | None = Field(default=None, max_length=160)
+    customer_phone: str | None = Field(default=None, max_length=40)
+    delivery_address: str | None = None
+    scheduled_for: datetime | None = None
     lines: list[OrderLineCreate] = Field(min_length=1)
 
 
