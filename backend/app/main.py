@@ -14,7 +14,7 @@ from app.routers import (
 )
 
 settings = get_settings()
-if settings.environment.lower() in {"production", "prod"} and (len(settings.jwt_secret) < 48 or "DEV_ONLY" in settings.jwt_secret):
+if settings.environment.lower() in {"production", "prod"} and (len(settings.jwt_secret) < 48 or "DEV_ONLY" in settings.jwt_secret or "CAMBIAR" in settings.jwt_secret):
     raise RuntimeError("JWT_SECRET debe ser un secreto aleatorio de al menos 48 caracteres en producción.")
 
 
