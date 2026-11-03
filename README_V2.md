@@ -1,41 +1,87 @@
 # TPV Hostelería — V2 híbrida
 
-La rama `v2-hybrid-architecture` inicia la evolución de la aplicación QR V1 hacia un TPV multiempresa, multiplataforma y local-first.
+TPV propio para hostelería, inspirado funcionalmente en las soluciones de HIOPOS, con arquitectura multiempresa, PWA multiplataforma y diseño local-first.
 
-## Estado
+La rama `v2-hybrid-architecture` desarrolla la V2. La versión anterior de pedidos QR permanece intacta en `main`.
 
-- Documentación de arquitectura y roadmap: `docs/`.
-- API base FastAPI: `backend/`.
-- PostgreSQL local y API en Docker Compose.
-- La V1 continúa disponible en `main`; esta rama no la sustituye todavía.
+## Funcionalidades ya incorporadas en esta base de desarrollo
 
-## Arranque de la base técnica
+- Primera instalación guiada: crea empresa, establecimiento y usuario propietario.
+- Autenticación con JWT y contraseñas Argon2.
+- Aislamiento de consultas por empresa y establecimiento.
+- Catálogo: familias, productos, precios, IVA y alérgenos.
+- Sala: zonas, mesas y enlaces QR con token revocable.
+- TPV: creación de comandas, selección de mesa y envío a cocina.
+- Caja: apertura/cierre de turno, arqueo y pagos parciales por efectivo/tarjeta/transferencia.
+- Cocina: cola KDS y estados de preparación; consumo de ingredientes al terminar platos con receta.
+- Pedidos QR: carta móvil, selección de productos y envío directo a cocina.
+- Reservas: agenda básica y estados.
+- Almacén: artículos, stock, movimientos y alertas de mínimo.
+- Compras: proveedores, pedidos y recepción que actualiza existencias.
+- Escandallos: recetas, componentes y cálculo inicial de coste.
+- Menús/combos: estructura de menús con productos, grupos y suplementos.
+- Promociones: descuentos fijos/porcentuales y aplicación por código.
+- Tarifas: listas de precios vinculables a zonas (la aplicación automática en ventas queda pendiente).
+- Empleados: usuarios, perfiles y permisos iniciales; planificación de turnos por API.
+- Clientes: fichas y puntos de fidelización.
+- Informes: ventas diarias, ticket medio, productos principales y formas de pago.
+- Base de datos PostgreSQL y migraciones Alembic.
+- PWA responsive para pantallas Windows, tablets y Android.
 
-Requisitos: Docker Desktop con Docker Compose.
+## Arranque en Windows
 
-En PowerShell:
+Requisitos: Docker Desktop con Docker Compose y virtualización habilitada.
+
+1. Descarga la rama `v2-hybrid-architecture`.
+2. En PowerShell, desde la carpeta del proyecto:
 
 ```powershell
 Copy-Item .env.example .env
 notepad .env
-# Sustituye POSTGRES_PASSWORD por un secreto largo y único.
+```
+
+3. Sustituye `POSTGRES_PASSWORD` y `JWT_SECRET` por dos secretos diferentes. Puedes generar cada uno con:
+
+```powershell
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+4. Arranca el sistema:
+
+```powershell
 docker compose up --build -d
 docker compose ps
 Invoke-RestMethod http://localhost:8000/health
-Invoke-RestMethod http://localhost:8000/api/v1/system/info
 ```
 
-Documentación OpenAPI: http://localhost:8000/docs
+5. Abre http://localhost:8000. La primera pantalla permite crear empresa, local y usuario administrador.
+6. Documentación de la API: http://localhost:8000/docs
 
-## Importante
+## Perfiles iniciales
 
-Este commit es un esqueleto técnico, no un TPV operativo. Todavía no implementa autenticación, productos, mesas, ventas, caja, cocina, impresión ni sincronización. No exponerlo a Internet ni usarlo en producción.
+- owner: propietario.
+- manager: encargado.
+- waiter: camarero.
+- kitchen: cocina.
+- cashier: caja.
 
-## Próximo trabajo
+Los permisos están en una primera iteración y deben revisarse antes de desplegar a clientes.
 
-1. Migraciones Alembic y modelo Tenant/Venue/User.
-2. Autenticación, sesiones, roles y aislamiento multiempresa.
-3. Catálogo y mesas.
-4. Comandas y caja con transacciones y auditoría.
-5. KDS y PWA.
-6. Motor de sincronización local-nube.
+## Arquitectura y límites actuales
+
+- La venta y la base de datos se ejecutan en el servidor local PostgreSQL.
+- La PWA se sirve desde el servidor local; Internet no es necesario para el acceso en la LAN.
+- El modo híbrido está diseñado, pero el sincronizador local-nube y la consola SaaS central todavía no están implementados.
+- La aplicación todavía no debe exponerse directamente a Internet.
+- No hay integración real con datáfonos, CashDro, impresoras ESC/POS ni plataformas externas de delivery.
+- La impresión térmica automática está pendiente; por ahora se puede usar impresión del navegador.
+- Facturación fiscal, VERI*FACTU, rectificativas y registros de eventos están pendientes de análisis e implementación normativa. No se debe emitir como software fiscalmente conforme hasta completar esa fase y validarla.
+- Las funciones de contabilidad, conciliación, B2B, campañas de marketing, página web y asistentes IA quedan en el roadmap.
+
+## Estado de validación
+
+Los archivos están publicados en GitHub, pero esta entrega no incluye una prueba de ejecución de extremo a extremo en un equipo Windows ni pruebas de concurrencia/aislamiento. Debe probarse en entorno de desarrollo antes de utilizarse con ventas reales.
+
+## Siguiente fase
+
+Consultar `docs/ROADMAP_V2.md` para el plan de cierre de brechas y la matriz de funcionalidades.
