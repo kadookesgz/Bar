@@ -7,20 +7,20 @@ El alcance toma como referencia las categorías públicas de HIOPOS para hostele
 - [x] Primera instalación, empresa, local y propietario.
 - [x] Inicio de sesión JWT y hash Argon2.
 - [x] Catálogo, familias, precios, IVA y alérgenos.
-- [x] Zonas y mesas.
-- [x] Comandas y líneas de pedido.
+- [x] Zonas, mesas y gestión inicial de varios establecimientos.
+- [x] Comandas, líneas de pedido y modificadores/suplementos asociados a productos.
 - [x] Cambio de mesa, descuento manual y división básica de cuenta por líneas mediante API.
 - [x] Cobros parciales y varios métodos de pago.
 - [x] Apertura/cierre de caja y arqueo.
 - [x] KDS básico con estados y eventos.
-- [x] QR por mesa con token revocable, PNG local, carta y pedido móvil.
+- [x] QR por mesa con token revocable, PNG local imprimible, carta y pedido móvil.
 - [x] Reservas básicas.
 - [x] Almacén, proveedores, compras y recepción.
 - [x] Recetas/escandallos y consumo automático de ingredientes al completar platos.
 - [x] Menús/combos y suplementos en modelo/API.
 - [x] Promociones y códigos de descuento.
 - [x] Listas de precios por zona en modelo/API.
-- [x] Empleados, perfiles y planificación básica de turnos.
+- [x] Empleados, perfiles, planificación básica de turnos y alta de establecimientos adicionales.
 - [x] Clientes y puntos de fidelización.
 - [x] Informe diario de ventas y productos.
 - [x] PWA responsive y Docker Compose con PostgreSQL/Alembic.
@@ -28,8 +28,8 @@ El alcance toma como referencia las categorías públicas de HIOPOS para hostele
 ## Fase 1 — Consolidar el núcleo del TPV
 - [ ] Pruebas automatizadas de todos los flujos y aislamiento multiempresa.
 - [ ] Concurrencia: numeración de tickets, bloqueo de cuentas, idempotencia de cobros.
-- [ ] Añadir productos a cuentas ya abiertas desde el TPV.
-- [ ] Integrar modificadores/formatos en la toma de pedido y validación de grupos obligatorios.
+- [ ] Añadir productos a cuentas ya abiertas desde la pantalla táctil del TPV (API disponible).
+- [x] Integrar modificadores y suplementos en la toma de pedido y validar grupos obligatorios.\n- [ ] Completar formatos/variantes de producto y selección visual avanzada de modificadores.
 - [ ] Aplicar automáticamente tarifas por zona y reglas de precios.
 - [ ] Completar devoluciones, anulaciones, reembolsos y trazabilidad de caja.
 - [ ] Añadir impresora de tickets, impresoras por estación y cajón portamonedas.
