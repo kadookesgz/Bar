@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
-from secrets import randbelow\nfrom uuid import UUID\n\nfrom pydantic import BaseModel, Field
+from secrets import randbelow
+from uuid import UUID\n\nfrom pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -138,23 +139,23 @@ async def kitchen_queue(ctx: TenantContext = Depends(get_tenant_context), db: As
     } for order, line in rows]
 
 
-class DiscountRequest(__import__("pydantic").BaseModel):
-    kind: str = __import__("pydantic").Field(pattern="^(amount|percent)$")
-    value: Decimal = __import__("pydantic").Field(gt=0, max_digits=12, decimal_places=2)
-    reason: str = __import__("pydantic").Field(min_length=2, max_length=240)
+class DiscountRequest(BaseModel):
+    kind: str = Field(pattern="^(amount|percent)$")
+    value: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
+    reason: str = Field(min_length=2, max_length=240)
 
 
-class MoveTableRequest(__import__("pydantic").BaseModel):
-    table_id: __import__("uuid").UUID | None = None
+class MoveTableRequest(BaseModel):
+    table_id: UUID | None = None
 
 
-class SplitLineRequest(__import__("pydantic").BaseModel):
-    line_id: __import__("uuid").UUID
-    quantity: Decimal = __import__("pydantic").Field(gt=0, max_digits=10, decimal_places=3)
+class SplitLineRequest(BaseModel):
+    line_id: UUID
+    quantity: Decimal = Field(gt=0, max_digits=10, decimal_places=3)
 
 
-class SplitOrderRequest(__import__("pydantic").BaseModel):
-    lines: list[SplitLineRequest] = __import__("pydantic").Field(min_length=1)
+class SplitOrderRequest(BaseModel):
+    lines: list[SplitLineRequest] = Field(min_length=1)
 
 
 async def _recalculate_order(db: AsyncSession, order: Order, ctx: TenantContext):
