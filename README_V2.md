@@ -85,4 +85,4 @@ Los archivos están publicados en GitHub, pero esta entrega no incluye una prueb
 
 ## Siguiente fase
 
-Consultar `docs/ROADMAP_V2.md` para el plan de cierre de brechas y la matriz de funcionalidades.
+Consultar `docs/ROADMAP_V2.md` para el plan de cierre de brechas y `docs/MATRIZ_FUNCIONAL_HIOPOS.md` para el estado de cada funcionalidad de referencia.
