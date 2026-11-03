@@ -26,7 +26,8 @@ La rama `v2-hybrid-architecture` desarrolla la V2. La versión anterior de pedid
 - Clientes: fichas y puntos de fidelización.
 - Informes: ventas diarias, ticket medio, productos principales y formas de pago.
 - Base de datos PostgreSQL y migraciones Alembic.
-- PWA responsive para pantallas Windows, tablets y Android; vista de ticket imprimible desde navegador.\n- Cola local outbox con eventos de ventas, cobros, reservas y movimientos de stock, preparada para sincronización futura.
+- PWA responsive para pantallas Windows, tablets y Android; vista de ticket imprimible desde navegador.
+- Cola local outbox con eventos de ventas, cobros, reservas y movimientos de stock, preparada para sincronización futura.
 
 ## Arranque en Windows
 
