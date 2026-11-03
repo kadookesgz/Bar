@@ -74,6 +74,7 @@ class TableOut(ORMModel):
 class OrderLineCreate(BaseModel):
     product_id: UUID
     quantity: Decimal = Field(gt=0, max_digits=10, decimal_places=3)
+    modifier_ids: list[UUID] = Field(default_factory=list)
     notes: str | None = None
 
 
