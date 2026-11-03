@@ -51,3 +51,5 @@ jobs:
           node --check /tmp/tpv-qr.js
       - name: Apply database migrations
         run: alembic -c ../alembic.ini upgrade head
+      - name: Run backend unit tests
+        run: pytest -q
