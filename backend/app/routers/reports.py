@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
 from app.db import get_db
-from app.models.hospitality import Order, OrderLine, Payment
+from app.models.hospitality import Order, OrderLine, Payment, Refund
 
 router = APIRouter(prefix="/api/v1/reports", tags=["reports and analytics"])
 
@@ -21,6 +21,11 @@ async def daily_report(report_date: date | None = None, ctx: TenantContext = Dep
         Order.tenant_id == ctx.tenant_id, Order.venue_id == ctx.venue_id,
         Order.status == "paid", Order.closed_at >= start, Order.closed_at < end,
     ))
+    refunds = await db.scalar(select(func.coalesce(func.sum(Refund.amount), 0)).where(
+        Refund.tenant_id == ctx.tenant_id, Refund.venue_id == ctx.venue_id,
+        Refund.status == "completed", Refund.refunded_at >= start, Refund.refunded_at < end,
+    ))
+    net_sales = Decimal(sales or 0) - Decimal(refunds or 0)
     paid_orders = await db.scalar(select(func.count(Order.id)).where(
         Order.tenant_id == ctx.tenant_id, Order.venue_id == ctx.venue_id,
         Order.status == "paid", Order.closed_at >= start, Order.closed_at < end,
@@ -40,7 +45,9 @@ async def daily_report(report_date: date | None = None, ctx: TenantContext = Dep
     )
     return {
         "date": day.isoformat(),
-        "sales_total": str(Decimal(sales or 0)),
+        "sales_total": str(net_sales),
+        "gross_sales": str(Decimal(sales or 0)),
+        "refunds_total": str(Decimal(refunds or 0)),
         "paid_orders": paid_orders or 0,
         "average_ticket": str((Decimal(sales or 0) / paid_orders).quantize(Decimal("0.01")) if paid_orders else Decimal("0.00")),
         "payments_by_method": [{"method": method, "amount": str(amount)} for method, amount in payments.all()],
