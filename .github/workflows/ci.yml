@@ -1,0 +1,27 @@
+name: TPV V2 CI
+
+on:
+  push:
+    branches: ["v2-hybrid-architecture"]
+  pull_request:
+    branches: ["v2-hybrid-architecture"]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Compile Python modules
+        run: python -m compileall -q backend
+      - name: Import application and register schema
+        env:
+          PYTHONPATH: backend
+          ENVIRONMENT: test
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
+          JWT_SECRET: ci-only-secret-ci-only-secret-ci-only-secret-ci-only-secret
+        run: python -c "from app.main import app; from app.models import Base; print(app.title, len(Base.metadata.tables))"
