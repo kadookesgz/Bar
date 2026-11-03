@@ -24,6 +24,8 @@ async def list_categories(ctx: TenantContext = Depends(get_tenant_context), db: 
 
 @router.post("/categories", response_model=CategoryOut, status_code=201)
 async def create_category(payload: CategoryCreate, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    if ctx.role not in {"owner", "admin", "manager"}:
+        raise HTTPException(status_code=403, detail="No tienes permiso para editar la carta.")
     item = ProductCategory(tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, **payload.model_dump())
     db.add(item)
     await db.commit()
@@ -45,6 +47,8 @@ async def list_products(ctx: TenantContext = Depends(get_tenant_context), db: As
 
 @router.post("/products", response_model=ProductOut, status_code=201)
 async def create_product(payload: ProductCreate, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    if ctx.role not in {"owner", "admin", "manager"}:
+        raise HTTPException(status_code=403, detail="No tienes permiso para editar la carta.")
     if payload.category_id:
         category = await db.scalar(select(ProductCategory).where(
             ProductCategory.id == payload.category_id,
