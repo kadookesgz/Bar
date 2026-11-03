@@ -165,7 +165,10 @@
       button.onclick = async function () {
         try {
           const result = await api("/api/v1/floor/tables/" + button.dataset.tableId + "/qr-token", {method:"POST"});
-          prompt("Enlace privado de carta QR. Copia este enlace para compartirlo:", location.origin + result.menu_path);
+          const popup = window.open("", "_blank");
+          if (!popup) { prompt("Enlace privado de carta QR:", location.origin + result.menu_path); return; }
+          popup.document.write('<html><head><title>QR de mesa</title><style>body{font:16px system-ui;text-align:center;padding:30px}img{width:280px;height:280px}p{word-break:break-all}</style></head><body><h2>Escanea para ver la carta</h2><img src="data:image/png;base64,' + result.qr_png_base64 + '"><p>' + location.origin + result.menu_path + '</p><button onclick="window.print()">Imprimir QR</button></body></html>');
+          popup.document.close();
         } catch (err) { alert(err.message); }
       };
     });
