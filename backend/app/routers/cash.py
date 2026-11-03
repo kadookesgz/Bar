@@ -271,7 +271,7 @@ async def recent_payments(limit: int = 50, ctx: TenantContext = Depends(get_tena
             Refund.venue_id == ctx.venue_id, Refund.status == "completed",
         ))
         output.append({
-            "id": str(payment.id), "order_number": order.order_number if order else None,
+            "id": str(payment.id), "order_id": str(payment.order_id), "order_number": order.order_number if order else None,
             "amount": str(payment.amount), "method": payment.method,
             "refunded": str(refunded or 0),
             "refundable": str(payment.amount - Decimal(refunded or 0)),
