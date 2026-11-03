@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
 from app.db import get_db
-from app.models.hospitality import AuditLog, DiningTable, Order, OrderLine, Product
+from app.models.hospitality import AuditLog, DiningTable, Modifier, ModifierGroup, Order, OrderLine, Product, ProductModifierGroup
 from app.schemas import OrderCreate, OrderLineCreate, OrderOut
 
 router = APIRouter(prefix="/api/v1/orders", tags=["orders"])
@@ -18,6 +18,40 @@ router = APIRouter(prefix="/api/v1/orders", tags=["orders"])
 
 def money(value: Decimal) -> Decimal:
     return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+
+async def _resolve_modifiers(db: AsyncSession, ctx: TenantContext, product: Product, modifier_ids: list[UUID]):
+    associations = list(await db.scalars(select(ProductModifierGroup).where(
+        ProductModifierGroup.product_id == product.id,
+        ProductModifierGroup.tenant_id == ctx.tenant_id,
+        ProductModifierGroup.venue_id == ctx.venue_id,
+    )))
+    group_ids = {x.group_id for x in associations}
+    groups = list(await db.scalars(select(ModifierGroup).where(
+        ModifierGroup.id.in_(group_ids) if group_ids else ModifierGroup.id.is_(None),
+        ModifierGroup.tenant_id == ctx.tenant_id,
+        ModifierGroup.venue_id == ctx.venue_id,
+    )))
+    selected = []
+    if modifier_ids:
+        selected = list(await db.scalars(select(Modifier).where(
+            Modifier.id.in_(modifier_ids),
+            Modifier.group_id.in_(group_ids) if group_ids else Modifier.group_id.is_(None),
+            Modifier.tenant_id == ctx.tenant_id,
+            Modifier.venue_id == ctx.venue_id,
+            Modifier.active.is_(True),
+        )))
+        if len(selected) != len(set(modifier_ids)):
+            raise HTTPException(status_code=422, detail="Hay modificadores no válidos para este producto.")
+    for group in groups:
+        count = sum(1 for item in selected if item.group_id == group.id)
+        minimum = max(group.min_select, 1 if group.required else 0)
+        if count < minimum or count > group.max_select:
+            raise HTTPException(status_code=422, detail=f"Selecciona entre {minimum} y {group.max_select} opciones en {group.name}.")
+    extra = sum((item.price_delta for item in selected), Decimal("0.00"))
+    details = [{"id": str(item.id), "name": item.name, "price_delta": str(item.price_delta)} for item in selected]
+    return money(product.price + extra), details
 
 
 @router.get("", response_model=list[OrderOut])
@@ -59,7 +93,8 @@ async def create_order(payload: OrderCreate, ctx: TenantContext = Depends(get_te
     order_lines = []
     for line in payload.lines:
         product = products[line.product_id]
-        line_total = money(product.price * line.quantity)
+        unit_price, modifier_details = await _resolve_modifiers(db, ctx, product, line.modifier_ids)
+        line_total = money(unit_price * line.quantity)
         tax = money(line_total * product.tax_rate / (Decimal("100") + product.tax_rate))
         subtotal += line_total
         tax_total += tax
@@ -69,9 +104,10 @@ async def create_order(payload: OrderCreate, ctx: TenantContext = Depends(get_te
             product_id=product.id,
             product_name=product.name,
             quantity=line.quantity,
-            unit_price=product.price,
+            unit_price=unit_price,
             line_total=line_total,
             tax_rate=product.tax_rate,
+            modifiers=modifier_details,
             notes=line.notes,
         ))
 
@@ -194,12 +230,13 @@ async def add_order_lines(order_id: str, payload: list[OrderLineCreate], ctx: Te
         ))
         if product is None:
             raise HTTPException(status_code=404, detail="Producto no disponible.")
-        line_total = money(product.price * requested.quantity)
+        unit_price, modifier_details = await _resolve_modifiers(db, ctx, product, requested.modifier_ids)
+        line_total = money(unit_price * requested.quantity)
         db.add(OrderLine(
             tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, order_id=order.id,
             product_id=product.id, product_name=product.name, quantity=requested.quantity,
-            unit_price=product.price, line_total=line_total, tax_rate=product.tax_rate,
-            notes=requested.notes,
+            unit_price=unit_price, line_total=line_total, tax_rate=product.tax_rate,
+            modifiers=modifier_details, notes=requested.notes,
         ))
     await db.flush()
     await _recalculate_order(db, order, ctx)
