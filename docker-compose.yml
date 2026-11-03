@@ -21,6 +21,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     restart: unless-stopped
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     environment:
       APP_NAME: TPV Hosteleria API
       ENVIRONMENT: ${ENVIRONMENT:-development}
