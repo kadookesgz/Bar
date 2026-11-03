@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
 from app.db import get_db
-from app.models.hospitality import Customer
+from app.models.hospitality import Customer, LoyaltyMovement
 
 router = APIRouter(prefix="/api/v1/customers", tags=["customers and loyalty"])
 
@@ -51,5 +51,6 @@ async def adjust_points(customer_id: UUID, payload: LoyaltyAdjustment, ctx: Tena
     if item.loyalty_points + payload.points < 0:
         raise HTTPException(status_code=409, detail="El saldo de puntos no puede ser negativo.")
     item.loyalty_points += payload.points
+    db.add(LoyaltyMovement(tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, customer_id=item.id, points=payload.points, reason=payload.reason, created_by=ctx.user_id))
     await db.commit()
     return {"customer_id": str(item.id), "loyalty_points": item.loyalty_points, "reason": payload.reason}
