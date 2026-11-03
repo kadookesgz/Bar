@@ -390,4 +390,44 @@
     } catch (err) { alert(err.message); venueSwitcher.value = session.venue.id; }
   };
 
+
+  async function loadPaymentHistory() {
+    const root = document.getElementById("paymentHistory");
+    if (!root || !token) return;
+    try {
+      const payments = await api("/api/v1/cash/payments?limit=30");
+      root.innerHTML = payments.map(function (p) {
+        return '<div class="listrow"><div><strong>Comanda #' + (p.order_number || "—") + ' · ' + money(p.amount) + '</strong>' +
+          '<small>' + esc(p.method) + ' · ' + new Date(p.paid_at).toLocaleString("es-ES") +
+          ' · Reembolsado ' + money(p.refunded) + '</small></div><div style="text-align:right"><b>Pendiente ' + money(p.refundable) + '</b><br>' +
+          (Number(p.refundable) > 0 ? '<button class="danger refund-button" data-payment-id="' + p.id + '" style="padding:6px 9px;margin-top:5px">Reembolsar</button>' : '<span class="pill">Liquidado</span>') +
+          '</div></div>';
+      }).join("") || '<div class="empty">Todavía no hay cobros registrados</div>';
+      root.querySelectorAll(".refund-button").forEach(function (button) {
+        button.onclick = function () { refundPayment(button.dataset.paymentId); };
+      });
+    } catch (err) { root.innerHTML = '<div class="notice">' + esc(err.message) + '</div>'; }
+  }
+
+  window.refundPayment = async function (paymentId) {
+    const amount = prompt("Importe a devolver (€)");
+    if (amount === null || !Number(amount) || Number(amount) <= 0) return;
+    const method = prompt("Forma de devolución: cash / card / transfer / other", "cash");
+    if (!method) return;
+    const reason = prompt("Motivo del reembolso", "Devolución solicitada");
+    if (!reason) return;
+    try {
+      await api("/api/v1/cash/payments/" + paymentId + "/refund", {
+        method:"POST", body:JSON.stringify({amount:Number(amount),method:method,reason:reason})
+      });
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  };
+
+  const loadAllBeforePaymentHistory = loadAll;
+  window.loadAll = async function () {
+    await loadAllBeforePaymentHistory();
+    await loadPaymentHistory();
+  };
+
 })();
