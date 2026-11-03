@@ -6,7 +6,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from uuid import UUID
 
 import qrcode
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +30,7 @@ class QROrderCreate(BaseModel):
 
 
 @router.post("/api/v1/floor/tables/{table_id}/qr-token")
-async def rotate_qr_token(table_id: UUID, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+async def rotate_qr_token(table_id: UUID, request: Request, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
     table = await db.scalar(select(DiningTable).where(
         DiningTable.id == table_id,
         DiningTable.tenant_id == ctx.tenant_id,
@@ -43,11 +43,12 @@ async def rotate_qr_token(table_id: UUID, ctx: TenantContext = Depends(get_tenan
     table.qr_token_hash = hashlib.sha256(token.encode()).hexdigest()
     await db.commit()
     menu_path = "/qr/" + token
-    image = qrcode.make(menu_path)
+    menu_url = str(request.base_url).rstrip("/") + menu_path
+    image = qrcode.make(menu_url)
     buffer = BytesIO()
     image.save(buffer, format="PNG")
     qr_png_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
-    return {"table_id": str(table.id), "token": token, "menu_path": menu_path, "qr_png_base64": qr_png_base64}
+    return {"table_id": str(table.id), "token": token, "menu_path": menu_path, "menu_url": menu_url, "qr_png_base64": qr_png_base64}
 
 
 @router.get("/api/v1/public/qr/{token}")
