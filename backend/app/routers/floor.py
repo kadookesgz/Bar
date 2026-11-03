@@ -20,6 +20,9 @@ async def list_areas(ctx: TenantContext = Depends(get_tenant_context), db: Async
 
 @router.post("/areas", status_code=201)
 async def create_area(payload: AreaCreate, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    if ctx.role not in {"owner", "admin", "manager"}:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="No tienes permiso para configurar la sala.")
     item = DiningArea(tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, name=payload.name)
     db.add(item)
     await db.commit()
@@ -39,6 +42,9 @@ async def list_tables(ctx: TenantContext = Depends(get_tenant_context), db: Asyn
 
 @router.post("/tables", response_model=TableOut, status_code=201)
 async def create_table(payload: TableCreate, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    if ctx.role not in {"owner", "admin", "manager"}:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="No tienes permiso para configurar la sala.")
     if payload.area_id:
         area = await db.scalar(select(DiningArea).where(
             DiningArea.id == payload.area_id,
