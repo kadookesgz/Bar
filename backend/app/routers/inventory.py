@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
+from app.core.sync import record_sync_event
 from app.db import get_db
 from app.models.hospitality import StockItem, StockMovement, Supplier
 
@@ -83,6 +84,7 @@ async def add_movement(item_id: UUID, payload: StockAdjustment, ctx: TenantConte
         reference=payload.reference, note=payload.note,
     )
     db.add(movement)
+    record_sync_event(db, ctx, aggregate_type="stock_item", aggregate_id=item.id, event_type="stock.movement", payload={"movement_type":payload.movement_type,"quantity":str(delta),"current_stock":str(item.current_stock)})
     await db.commit()
     return {"item_id": str(item.id), "current_stock": str(item.current_stock)}
 
