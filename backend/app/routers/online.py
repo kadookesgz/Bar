@@ -1,8 +1,11 @@
+import base64
 import hashlib
 import secrets
+from io import BytesIO
 from decimal import Decimal, ROUND_HALF_UP
 from uuid import UUID
 
+import qrcode
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -39,7 +42,12 @@ async def rotate_qr_token(table_id: UUID, ctx: TenantContext = Depends(get_tenan
     token = secrets.token_urlsafe(32)
     table.qr_token_hash = hashlib.sha256(token.encode()).hexdigest()
     await db.commit()
-    return {"table_id": str(table.id), "token": token, "menu_path": "/qr/" + token}
+    menu_path = "/qr/" + token
+    image = qrcode.make(menu_path)
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    qr_png_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+    return {"table_id": str(table.id), "token": token, "menu_path": menu_path, "qr_png_base64": qr_png_base64}
 
 
 @router.get("/api/v1/public/qr/{token}")
