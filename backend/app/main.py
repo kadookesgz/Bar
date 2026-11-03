@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.db import engine
 from app.models import Base  # Importa todos los modelos para registrar el metadata.
-from app.routers import auth, cash, catalog, employees, floor, inventory, kitchen, management, online, orders, reservations, setup
+from app.routers import auth, cash, catalog, customers, employees, floor, inventory, kitchen, management, online, orders, reports, reservations, setup
 
 settings = get_settings()
 
@@ -53,6 +53,8 @@ app.include_router(catalog.router)
 app.include_router(floor.router)
 app.include_router(orders.router)
 app.include_router(management.router)
+app.include_router(reports.router)
+app.include_router(customers.router)
 
 
 @app.get("/health", tags=["system"])
