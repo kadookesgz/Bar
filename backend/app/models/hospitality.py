@@ -286,3 +286,94 @@ class SyncEvent(ScopedRecord, Base):
     attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Menu(ScopedRecord, Base):
+    __tablename__ = "menus"
+
+    name: Mapped[str] = mapped_column(String(140), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    fixed_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    available_days: Mapped[list] = mapped_column(JSON, default=list, nullable=False)
+    available_from: Mapped[str | None] = mapped_column(String(5))
+    available_until: Mapped[str | None] = mapped_column(String(5))
+
+
+class MenuItem(ScopedRecord, Base):
+    __tablename__ = "menu_items"
+
+    menu_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("menus.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
+    group_name: Mapped[str | None] = mapped_column(String(80))
+    selection_type: Mapped[str] = mapped_column(String(20), default="included", nullable=False)
+    supplement: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0, nullable=False)
+
+
+class Promotion(ScopedRecord, Base):
+    __tablename__ = "promotions"
+
+    name: Mapped[str] = mapped_column(String(140), nullable=False)
+    code: Mapped[str | None] = mapped_column(String(40))
+    discount_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    discount_value: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    minimum_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0, nullable=False)
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class PriceList(ScopedRecord, Base):
+    __tablename__ = "price_lists"
+
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    area_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("dining_areas.id"))
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class PriceListItem(ScopedRecord, Base):
+    __tablename__ = "price_list_items"
+
+    price_list_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("price_lists.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
+    price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+
+
+class PurchaseOrder(ScopedRecord, Base):
+    __tablename__ = "purchase_orders"
+
+    supplier_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("suppliers.id"), nullable=False)
+    reference: Mapped[str | None] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(20), default="draft", nullable=False)
+    total: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0, nullable=False)
+    ordered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class PurchaseOrderLine(ScopedRecord, Base):
+    __tablename__ = "purchase_order_lines"
+
+    purchase_order_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("purchase_orders.id", ondelete="CASCADE"), nullable=False, index=True)
+    stock_item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("stock_items.id"), nullable=False)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3), nullable=False)
+    received_quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0, nullable=False)
+    unit_cost: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+
+
+class EmployeeShift(ScopedRecord, Base):
+    __tablename__ = "employee_shifts"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="scheduled", nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text)
+
+
+class LoyaltyMovement(ScopedRecord, Base):
+    __tablename__ = "loyalty_movements"
+
+    customer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("customers.id"), nullable=False, index=True)
+    points: Mapped[int] = mapped_column(Integer, nullable=False)
+    reason: Mapped[str] = mapped_column(String(240), nullable=False)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
