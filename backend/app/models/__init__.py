@@ -3,7 +3,7 @@ from app.models.tenancy import Tenant, User, UserVenue, Venue
 from app.models.hospitality import (
     AuditLog, CashMovement, CashRegister, CashShift, Customer, DiningArea,
     DiningTable, EmployeeShift, KitchenEvent, KitchenStation, LoyaltyMovement,
-    Menu, MenuItem, Modifier, ModifierGroup, Order, OrderLine, Payment,
+    Menu, MenuItem, Modifier, ModifierGroup, Order, OrderLine, Payment, ProductModifierGroup,
     PriceList, PriceListItem, Product, ProductCategory, Promotion,
     PurchaseOrder, PurchaseOrderLine, Recipe, RecipeLine, Reservation,
     StockItem, StockMovement, Supplier, SyncEvent,
@@ -11,7 +11,7 @@ from app.models.hospitality import (
 
 __all__ = [
     "Base", "Tenant", "Venue", "User", "UserVenue",
-    "ProductCategory", "Product", "ModifierGroup", "Modifier",
+    "ProductCategory", "Product", "ModifierGroup", "Modifier", "ProductModifierGroup",
     "DiningArea", "DiningTable", "Reservation", "Customer", "Order",
     "OrderLine", "KitchenStation", "KitchenEvent", "CashRegister",
     "CashShift", "Payment", "CashMovement", "Supplier", "StockItem",
