@@ -178,4 +178,4 @@ if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.ser
 (async()=>{if(token&&session){showApp();return}try{const s=await api("/api/v1/setup/status");if(s.setup_required){document.getElementById("showSetup").click()}}catch(e){showError("No se puede conectar con el servidor local. Comprueba que esté iniciado.")}})();
 setInterval(()=>{if(token&&!document.hidden)loadAll().catch(()=>{})},15000);
 </script>
-</body></html>
+<script src="/extensions.js"></script></body></html>
