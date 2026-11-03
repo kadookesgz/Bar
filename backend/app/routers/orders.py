@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from secrets import randbelow
-from uuid import UUID\n\nfrom pydantic import BaseModel, Field
+from uuid import UUID
+from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
