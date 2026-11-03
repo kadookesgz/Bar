@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.db import engine
 from app.models import Base  # Importa todos los modelos para registrar el metadata.
-from app.routers import auth, cash, catalog, floor, management, orders, setup
+from app.routers import auth, cash, catalog, floor, inventory, kitchen, management, orders, reservations, setup
 
 settings = get_settings()
 
@@ -44,6 +44,9 @@ app.add_middleware(
 app.include_router(setup.router)
 app.include_router(auth.router)
 app.include_router(cash.router)
+app.include_router(kitchen.router)
+app.include_router(reservations.router)
+app.include_router(inventory.router)
 app.include_router(catalog.router)
 app.include_router(floor.router)
 app.include_router(orders.router)
