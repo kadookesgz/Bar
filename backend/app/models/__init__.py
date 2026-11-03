@@ -5,7 +5,7 @@ from app.models.hospitality import (
     DiningTable, EmployeeShift, KitchenEvent, KitchenStation, LoyaltyMovement,
     Menu, MenuItem, Modifier, ModifierGroup, Order, OrderLine, Payment, ProductModifierGroup,
     PriceList, PriceListItem, Product, ProductCategory, Promotion,
-    PurchaseOrder, PurchaseOrderLine, Recipe, RecipeLine, Reservation,
+    PurchaseOrder, PurchaseOrderLine, Recipe, RecipeLine, Refund, Reservation,
     StockItem, StockMovement, Supplier, SyncEvent,
 )
 
@@ -17,5 +17,5 @@ __all__ = [
     "CashShift", "Payment", "CashMovement", "Supplier", "StockItem",
     "Recipe", "RecipeLine", "StockMovement", "AuditLog", "SyncEvent",
     "Menu", "MenuItem", "Promotion", "PriceList", "PriceListItem",
-    "PurchaseOrder", "PurchaseOrderLine", "EmployeeShift", "LoyaltyMovement",
+    "PurchaseOrder", "PurchaseOrderLine", "EmployeeShift", "LoyaltyMovement", "Refund",
 ]
