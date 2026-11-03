@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
+from app.core.sync import record_sync_event
 from app.db import get_db
 from app.models.hospitality import AuditLog, DiningTable, Modifier, ModifierGroup, Order, OrderLine, Payment, Product, ProductModifierGroup
 from app.schemas import OrderCreate, OrderLineCreate, OrderOut
@@ -131,6 +132,7 @@ async def create_order(payload: OrderCreate, ctx: TenantContext = Depends(get_te
                 action="order.lines_added_from_pos", entity_type="order", entity_id=existing_order.id,
                 details={"count": len(order_lines)},
             ))
+            record_sync_event(db, ctx, aggregate_type="order", aggregate_id=existing_order.id, event_type="order.lines_added", payload={"line_count": len(order_lines), "total": str(existing_order.total)})
             await db.commit()
             await db.refresh(existing_order)
             return existing_order
@@ -156,6 +158,7 @@ async def create_order(payload: OrderCreate, ctx: TenantContext = Depends(get_te
     for line in order_lines:
         line.order_id = order.id
         db.add(line)
+    record_sync_event(db, ctx, aggregate_type="order", aggregate_id=order.id, event_type="order.created", payload={"order_number": order.order_number, "channel": order.channel, "total": str(order.total), "table_id": str(order.table_id) if order.table_id else None})
     await db.commit()
     await db.refresh(order)
     return order
@@ -269,6 +272,7 @@ async def add_order_lines(order_id: str, payload: list[OrderLineCreate], ctx: Te
         action="order.lines_added", entity_type="order", entity_id=order.id,
         details={"count": len(payload)},
     ))
+    record_sync_event(db, ctx, aggregate_type="order", aggregate_id=order.id, event_type="order.lines_added", payload={"line_count": len(payload), "total": str(order.total)})
     await db.commit()
     await db.refresh(order)
     return {"order_id": str(order.id), "total": str(order.total), "status": order.status}
@@ -326,6 +330,7 @@ async def apply_discount(order_id: str, payload: DiscountRequest, ctx: TenantCon
         action="order.discount_applied", entity_type="order", entity_id=order.id,
         details={"kind": payload.kind, "value": str(payload.value), "reason": payload.reason},
     ))
+    record_sync_event(db, ctx, aggregate_type="order", aggregate_id=order.id, event_type="order.discounted", payload={"discount_total": str(order.discount_total), "total": str(order.total)})
     await db.commit()
     return {"order_id": str(order.id), "discount_total": str(order.discount_total), "total": str(order.total)}
 
