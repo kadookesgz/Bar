@@ -9,8 +9,8 @@ from app.core.config import get_settings
 from app.db import engine
 from app.models import Base
 from app.routers import (
-    auth, cash, catalog, customers, employees, floor, inventory, kitchen,
-    management, menus, online, orders, promotions, purchases, reports, reservations, setup,
+    auth, cash, catalog, customers, employee_shifts, employees, floor, inventory, kitchen,
+    management, menus, online, orders, pricing, promotions, purchases, reports, reservations, setup,
 )
 
 settings = get_settings()
@@ -44,9 +44,9 @@ app.add_middleware(
 )
 
 for router in (
-    setup.router, auth.router, cash.router, kitchen.router, reservations.router,
+    setup.router, auth.router, cash.router, kitchen.router, employee_shifts.router, reservations.router,
     inventory.router, employees.router, online.router, catalog.router, floor.router,
-    orders.router, management.router, reports.router, customers.router, menus.router, promotions.router, purchases.router,
+    orders.router, management.router, reports.router, customers.router, menus.router, pricing.router, promotions.router, purchases.router,
 ):
     app.include_router(router)
 
