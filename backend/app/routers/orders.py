@@ -58,7 +58,7 @@ async def create_order(payload: OrderCreate, ctx: TenantContext = Depends(get_te
     for line in payload.lines:
         product = products[line.product_id]
         line_total = money(product.price * line.quantity)
-        tax = money(line_total * product.tax_rate / Decimal("100"))
+        tax = money(line_total * product.tax_rate / (Decimal("100") + product.tax_rate))
         subtotal += line_total
         tax_total += tax
         order_lines.append(OrderLine(
