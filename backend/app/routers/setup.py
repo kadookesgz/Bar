@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import create_access_token, hash_password
 from app.db import get_db
 from app.models.tenancy import Tenant, User, UserVenue, Venue
+from app.models.hospitality import CashRegister, DiningArea
 
 router = APIRouter(prefix="/api/v1/setup", tags=["initial setup"])
 
@@ -55,6 +56,8 @@ async def bootstrap(payload: BootstrapRequest, db: AsyncSession = Depends(get_db
     db.add(user)
     await db.flush()
     db.add(UserVenue(user_id=user.id, venue_id=venue.id, role="owner"))
+    db.add(CashRegister(tenant_id=tenant.id, venue_id=venue.id, name="Caja principal"))
+    db.add(DiningArea(tenant_id=tenant.id, venue_id=venue.id, name="Sala", sort_order=0))
     await db.commit()
 
     token = create_access_token(user_id=user.id, tenant_id=tenant.id, venue_id=venue.id, role="owner")
