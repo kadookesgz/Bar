@@ -9,12 +9,12 @@ La rama `v2-hybrid-architecture` desarrolla la V2. La versión anterior de pedid
 - Primera instalación guiada: crea empresa, establecimiento y usuario propietario.
 - Autenticación con JWT y contraseñas Argon2.
 - Aislamiento de consultas por empresa y establecimiento.
-- Catálogo: familias, productos, precios, IVA y alérgenos.
+- Catálogo: familias, productos, precios, IVA, alérgenos y grupos de modificadores/suplementos.
 - Sala: zonas, mesas y enlaces QR con token revocable.
-- TPV: creación de comandas, selección de mesa y envío a cocina.
+- TPV: creación de comandas, selección de mesa, modificadores, canales local/recogida/delivery y envío a cocina.
 - Caja: apertura/cierre de turno, arqueo y pagos parciales por efectivo/tarjeta/transferencia.
 - Cocina: cola KDS y estados de preparación; consumo de ingredientes al terminar platos con receta.
-- Pedidos QR: carta móvil, selección de productos y envío directo a cocina.
+- Pedidos QR: QR PNG imprimible por mesa, carta móvil, selección de productos y envío directo a cocina.
 - Reservas: agenda básica y estados.
 - Almacén: artículos, stock, movimientos y alertas de mínimo.
 - Compras: proveedores, pedidos y recepción que actualiza existencias.
