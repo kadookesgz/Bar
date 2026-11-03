@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
 from app.db import get_db
-from app.models.hospitality import KitchenEvent, Order, OrderLine
+from app.models.hospitality import KitchenEvent, Order, OrderLine, Recipe, RecipeLine, StockItem, StockMovement
 
 router = APIRouter(prefix="/api/v1/kitchen", tags=["kitchen display"])
 
@@ -26,7 +26,31 @@ async def update_line_status(line_id: UUID, payload: KitchenStatusRequest, ctx: 
     ))
     if line is None:
         raise HTTPException(status_code=404, detail="Línea de comanda no encontrada.")
+    previous_status = line.kitchen_status
     line.kitchen_status = payload.status
+    if payload.status in {"ready", "served"} and previous_status not in {"ready", "served"} and line.product_id:
+        recipe = await db.scalar(select(Recipe).where(
+            Recipe.product_id == line.product_id, Recipe.tenant_id == ctx.tenant_id,
+            Recipe.venue_id == ctx.venue_id,
+        ))
+        if recipe:
+            components = await db.scalars(select(RecipeLine).where(
+                RecipeLine.recipe_id == recipe.id, RecipeLine.tenant_id == ctx.tenant_id,
+                RecipeLine.venue_id == ctx.venue_id,
+            ))
+            for component in components:
+                stock = await db.scalar(select(StockItem).where(
+                    StockItem.id == component.stock_item_id, StockItem.tenant_id == ctx.tenant_id,
+                    StockItem.venue_id == ctx.venue_id,
+                ))
+                if stock:
+                    used = component.quantity * line.quantity / recipe.yield_quantity
+                    stock.current_stock -= used
+                    db.add(StockMovement(
+                        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, stock_item_id=stock.id,
+                        movement_type="sale", quantity=-used, unit_cost=stock.cost_per_unit,
+                        reference=str(line.order_id), note="Consumo automático por elaboración de comanda",
+                    ))
     db.add(KitchenEvent(
         tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, order_line_id=line.id,
         status=payload.status, actor_user_id=ctx.user_id, note=payload.note,
