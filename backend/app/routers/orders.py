@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -391,3 +392,35 @@ async def split_order(order_id: str, payload: SplitOrderRequest, ctx: TenantCont
     await db.commit()
     await db.refresh(new_order)
     return {"new_order_id": str(new_order.id), "new_order_number": new_order.order_number, "total": str(new_order.total)}
+
+
+
+@router.get("/{order_id}/receipt", response_class=HTMLResponse)
+async def print_receipt(order_id: UUID, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    order = await db.scalar(select(Order).where(
+        Order.id == order_id, Order.tenant_id == ctx.tenant_id,
+        Order.venue_id == ctx.venue_id,
+    ))
+    if order is None:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada.")
+    lines = await db.scalars(select(OrderLine).where(
+        OrderLine.order_id == order.id, OrderLine.tenant_id == ctx.tenant_id,
+        OrderLine.venue_id == ctx.venue_id,
+    ))
+    rows = "".join(
+        "<tr><td>" + line.product_name + "</td><td>" + str(line.quantity) +
+        "</td><td>" + str(line.line_total) + " €</td></tr>"
+        for line in lines
+    )
+    html = """<!doctype html><html lang="es"><meta charset="utf-8"><title>Ticket</title>
+    <style>body{font:14px monospace;max-width:340px;margin:20px auto;color:#111}
+    h2,p{text-align:center;margin:6px 0}table{width:100%;border-collapse:collapse;margin:18px 0}
+    td{padding:5px 0;border-bottom:1px dashed #aaa}td:last-child{text-align:right}
+    .total{font-size:20px;font-weight:bold;text-align:right}@media print{button{display:none}body{margin:0 auto}}</style>
+    <h2>TPV HOSTELERÍA</h2><p>Comanda #""" + str(order.order_number) + """</p>
+    <p>""" + order.opened_at.strftime("%d/%m/%Y %H:%M") + """</p>
+    <table>""" + rows + """</table>
+    <p class="total">TOTAL: """ + str(order.total) + """ €</p>
+    <p>Gracias por su visita</p><p><button onclick="window.print()">Imprimir</button></p>
+    </html>"""
+    return HTMLResponse(html)
