@@ -1,0 +1,12 @@
+{
+  "name": "TPV Hostelería",
+  "short_name": "TPV",
+  "description": "Punto de venta y gestión integral de hostelería",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f3f5f8",
+  "theme_color": "#101827",
+  "lang": "es"
+}
