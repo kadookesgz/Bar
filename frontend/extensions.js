@@ -170,4 +170,88 @@
       };
     });
   };
+
+  ["employees", "customers", "reports"].forEach(function (id) {
+    const button = document.createElement("button");
+    button.dataset.view = id;
+    button.textContent = id === "employees" ? "♙ Equipo" : id === "customers" ? "♡ Clientes" : "▥ Informes";
+    button.onclick = function () { switchView(id); };
+    nav.insertBefore(button, cashNav);
+    const section = document.createElement("section");
+    section.id = id;
+    section.className = "view";
+    if (id === "employees") section.innerHTML = '<div class="heading"><div><h1>Equipo</h1><div class="sub">Usuarios, perfiles y permisos del establecimiento</div></div><button id="newEmployeeBtn">＋ Empleado</button></div><div id="employeeList" class="list"></div>';
+    if (id === "customers") section.innerHTML = '<div class="heading"><div><h1>Clientes y fidelización</h1><div class="sub">Ficha de cliente e historial de puntos</div></div><button id="newCustomerBtn">＋ Cliente</button></div><div id="customerList" class="list"></div>';
+    if (id === "reports") section.innerHTML = '<div class="heading"><div><h1>Informes</h1><div class="sub">Ventas, ticket medio y productos más vendidos</div></div><button id="refreshReportBtn" class="secondary">↻ Actualizar</button></div><div id="reportContent"></div>';
+    cashSection.parentNode.insertBefore(section, cashSection);
+  });
+  document.getElementById("newEmployeeBtn").onclick = newEmployee;
+  document.getElementById("newCustomerBtn").onclick = newCustomer;
+  document.getElementById("refreshReportBtn").onclick = loadReport;
+
+  const oldExtendedLoadAll = loadAll;
+  window.loadAll = async function () {
+    await oldExtendedLoadAll();
+    try {
+      const data = await Promise.all([api("/api/v1/employees"), api("/api/v1/customers")]);
+      employees = data[0]; customers = data[1];
+      renderEmployees(); renderCustomers();
+    } catch (err) { console.error(err); }
+  };
+  let employees = [], customers = [];
+
+  const oldSwitchWithTwo = switchView;
+  window.switchView = function (id) {
+    if (["employees", "customers", "reports"].indexOf(id) < 0) return oldSwitchWithTwo(id);
+    document.querySelectorAll(".view").forEach(function (v) { v.classList.toggle("active", v.id === id); });
+    document.querySelectorAll(".nav button").forEach(function (b) { b.classList.toggle("active", b.dataset.view === id); });
+    document.getElementById("pageTitle").textContent = id === "employees" ? "Equipo" : id === "customers" ? "Clientes" : "Informes";
+    if (id === "employees") renderEmployees();
+    if (id === "customers") renderCustomers();
+    if (id === "reports") loadReport();
+  };
+
+  window.renderEmployees = function () {
+    const root = document.getElementById("employeeList");
+    if (!root) return;
+    root.innerHTML = employees.map(function (e) {
+      return '<div class="listrow"><div><strong>' + esc(e.display_name) + '</strong><small>' + esc(e.email) + '</small></div><span class="pill">' + esc(e.role) + '</span></div>';
+    }).join("") || '<div class="empty">No hay empleados registrados</div>';
+  };
+  window.newEmployee = function () {
+    modal("Añadir empleado",
+      '<label>Nombre<input name="display_name" required></label><label>Correo<input name="email" type="email" required></label>' +
+      '<label>Contraseña inicial (mínimo 12 caracteres)<input name="password" type="password" minlength="12" required></label>' +
+      '<label>Perfil<select name="role"><option value="waiter">Camarero</option><option value="kitchen">Cocina</option><option value="cashier">Caja</option><option value="manager">Encargado</option></select></label>',
+      function (d) { return api("/api/v1/employees", {method:"POST",body:JSON.stringify(d)}); }
+    );
+  };
+  window.renderCustomers = function () {
+    const root = document.getElementById("customerList");
+    if (!root) return;
+    root.innerHTML = customers.map(function (c) {
+      return '<div class="listrow"><div><strong>' + esc(c.name) + '</strong><small>' + esc(c.email || c.phone || "Sin contacto") + '</small></div><span class="pill green">' + c.loyalty_points + ' puntos</span></div>';
+    }).join("") || '<div class="empty">No hay clientes registrados</div>';
+  };
+  window.newCustomer = function () {
+    modal("Nuevo cliente",
+      '<label>Nombre<input name="name" required></label><label>Correo<input name="email" type="email"></label><label>Teléfono<input name="phone"></label><label>Notas<textarea name="notes"></textarea></label>',
+      function (d) { return api("/api/v1/customers", {method:"POST",body:JSON.stringify({name:d.name,email:d.email||null,phone:d.phone||null,notes:d.notes||null})}); }
+    );
+  };
+  window.loadReport = async function () {
+    const root = document.getElementById("reportContent");
+    root.innerHTML = '<div class="empty">Cargando informe…</div>';
+    try {
+      const r = await api("/api/v1/reports/daily");
+      root.innerHTML = '<div class="grid stats"><div class="card"><div class="statlabel">Ventas cobradas hoy</div><div class="statvalue">' + money(r.sales_total) + '</div></div>' +
+        '<div class="card"><div class="statlabel">Tickets cobrados</div><div class="statvalue">' + r.paid_orders + '</div></div>' +
+        '<div class="card"><div class="statlabel">Ticket medio</div><div class="statvalue">' + money(r.average_ticket) + '</div></div></div>' +
+        '<div class="grid twocol"><div class="card"><h3>Productos más vendidos</h3>' +
+        (r.top_products.map(function (p) { return '<div class="listrow"><b>' + esc(p.name) + '</b><span>' + esc(p.quantity) + ' uds · ' + money(p.sales) + '</span></div>'; }).join("") || '<p class="muted">Sin ventas cerradas hoy.</p>') +
+        '</div><div class="card"><h3>Formas de pago</h3>' +
+        (r.payments_by_method.map(function (p) { return '<div class="listrow"><b>' + esc(p.method) + '</b><span>' + money(p.amount) + '</span></div>'; }).join("") || '<p class="muted">Sin cobros hoy.</p>') + '</div></div>';
+    } catch (err) { root.innerHTML = '<div class="notice">' + esc(err.message) + '</div>'; }
+  };
+
 })();
