@@ -103,10 +103,10 @@ async def send_to_kitchen(order_id: str, ctx: TenantContext = Depends(get_tenant
         Order.id == order_id,
         Order.tenant_id == ctx.tenant_id,
         Order.venue_id == ctx.venue_id,
-        Order.status == "open",
+        Order.status.in_(["open", "sent", "preparing"]),
     ))
     if order is None:
-        raise HTTPException(status_code=404, detail="Comanda no encontrada o ya enviada.")
+        raise HTTPException(status_code=404, detail="Comanda no encontrada o no modificable.")
     order.status = "sent"
     await db.commit()
     await db.refresh(order)
@@ -120,6 +120,7 @@ async def kitchen_queue(ctx: TenantContext = Depends(get_tenant_context), db: As
             Order.tenant_id == ctx.tenant_id,
             Order.venue_id == ctx.venue_id,
             Order.status.in_(["sent", "preparing", "ready"]),
+            OrderLine.kitchen_status.in_(["pending", "preparing"]),
             OrderLine.tenant_id == ctx.tenant_id,
             OrderLine.venue_id == ctx.venue_id,
         ).order_by(Order.opened_at)
