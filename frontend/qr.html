@@ -7,9 +7,35 @@
 const token=location.pathname.split("/").filter(Boolean).pop();let menu=null,cart={};
 const money=n=>new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-async function init(){try{const r=await fetch("/api/v1/public/qr/"+encodeURIComponent(token));menu=await r.json();if(!r.ok)throw new Error(menu.detail||"Código QR no válido");document.getElementById("venue").textContent="Carta del establecimiento";document.getElementById("table").textContent=menu.table.label;document.getElementById("items").innerHTML=menu.products.map(p=>'<article class="item"><div><b>'+esc(p.name)+'</b><p>'+esc(p.description||"")+'</p><p>Alérgenos: '+esc((p.allergens||[]).join(", ")||"No indicados")+'</p><b>'+money(p.price)+'</b></div><button onclick="add(\\''+p.id+'\\')">Añadir</button></article>').join("")||'<p class="muted">No hay productos disponibles.</p>';}catch(e){document.getElementById("error").innerHTML='<div class="error">'+esc(e.message)+'</div>'}}
+async function init(){
+ try{
+  const r=await fetch("/api/v1/public/qr/"+encodeURIComponent(token));menu=await r.json();
+  if(!r.ok)throw new Error(menu.detail||"Código QR no válido");
+  document.getElementById("venue").textContent="Carta digital";
+  document.getElementById("table").textContent=menu.table.label;
+  document.getElementById("items").innerHTML=menu.products.map(p=>'<article class="item"><div><b>'+esc(p.name)+'</b><p>'+esc(p.description||"")+'</p><p>Alérgenos: '+esc((p.allergens||[]).join(", ")||"No indicados")+'</p><b>'+money(p.price)+'</b></div><button data-product-id="'+p.id+'">Añadir</button></article>').join("")||'<p class="muted">No hay productos disponibles.</p>';
+  document.querySelectorAll("[data-product-id]").forEach(b=>b.onclick=()=>add(b.dataset.productId));
+ }catch(e){document.getElementById("error").innerHTML='<div class="error">'+esc(e.message)+'</div>'}
+}
 function add(id){cart[id]=(cart[id]||0)+1;render()}
-function render(){let total=0;const lines=Object.entries(cart).map(([id,qty])=>{const p=menu.products.find(x=>x.id===id);const value=Number(p.price)*qty;total+=value;return '<div class="cartrow"><span>'+esc(p.name)+' × '+qty+'</span><b>'+money(value)+'</b></div>'});document.getElementById("cart").innerHTML=lines.join("")||'<p class="muted">Todavía no has añadido productos.</p>';document.getElementById("total").textContent=money(total);document.getElementById("send").disabled=!lines.length}
-document.getElementById("send").onclick=async()=>{try{const lines=Object.entries(cart).map(([product_id,quantity])=>({product_id,quantity}));const r=await fetch("/api/v1/public/qr/"+encodeURIComponent(token)+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({lines})});const data=await r.json();if(!r.ok)throw new Error(data.detail||"No se pudo enviar el pedido");document.querySelector(".cart").innerHTML='<h2>¡Pedido enviado!</h2><p>Comanda número <b>#'+data.order_number+'</b></p><p>Total: <b>'+money(data.total)+'</b></p><p class="muted">El personal del establecimiento atenderá tu pedido.</p>';cart={}}catch(e){alert(e.message)}};
+function render(){
+ let total=0;
+ const lines=Object.entries(cart).map(([id,qty])=>{
+  const p=menu.products.find(x=>x.id===id);const value=Number(p.price)*qty;total+=value;
+  return '<div class="cartrow"><span>'+esc(p.name)+' × '+qty+'</span><b>'+money(value)+'</b></div>';
+ });
+ document.getElementById("cart").innerHTML=lines.join("")||'<p class="muted">Todavía no has añadido productos.</p>';
+ document.getElementById("total").textContent=money(total);
+ document.getElementById("send").disabled=!lines.length;
+}
+document.getElementById("send").onclick=async()=>{
+ try{
+  const lines=Object.entries(cart).map(([product_id,quantity])=>({product_id,quantity}));
+  const r=await fetch("/api/v1/public/qr/"+encodeURIComponent(token)+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({lines})});
+  const data=await r.json();if(!r.ok)throw new Error(data.detail||"No se pudo enviar el pedido");
+  document.querySelector(".cart").innerHTML='<h2>¡Pedido enviado!</h2><p>Comanda número <b>#'+data.order_number+'</b></p><p>Total: <b>'+money(data.total)+'</b></p><p class="muted">El personal del establecimiento atenderá tu pedido.</p>';
+  cart={};
+ }catch(e){alert(e.message)}
+};
 init();
 </script></body></html>
