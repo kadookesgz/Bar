@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
+from app.core.sync import record_sync_event
 from app.db import get_db
 from app.models.hospitality import PurchaseOrder, PurchaseOrderLine, StockItem, StockMovement, Supplier
 
@@ -100,5 +101,6 @@ async def receive_purchase(purchase_id: UUID, ctx: TenantContext = Depends(get_t
         ))
     purchase.status = "received"
     purchase.received_at = datetime.now(timezone.utc)
+    record_sync_event(db, ctx, aggregate_type="purchase_order", aggregate_id=purchase.id, event_type="purchase.received", payload={"total":str(purchase.total),"line_count":len(lines)})
     await db.commit()
     return {"id": str(purchase.id), "status": purchase.status, "lines_received": len(lines)}
