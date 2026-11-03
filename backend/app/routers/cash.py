@@ -131,13 +131,6 @@ async def create_payment(payload: PaymentRequest, ctx: TenantContext = Depends(g
     if not order:
         raise HTTPException(status_code=404, detail="Cuenta abierta no encontrada.")
 
-    paid = await db.scalar(select(Payment.amount).where(
-        Payment.order_id == order.id,
-        Payment.tenant_id == ctx.tenant_id,
-        Payment.venue_id == ctx.venue_id,
-        Payment.status == "captured",
-    ))
-    paid_total = paid or Decimal("0")
     # Sum all captured payments without loading payment rows into memory.
     from sqlalchemy import func
     paid_total = await db.scalar(select(func.coalesce(func.sum(Payment.amount), 0)).where(
