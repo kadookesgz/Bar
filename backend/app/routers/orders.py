@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
 from app.db import get_db
-from app.models.hospitality import DiningTable, Order, OrderLine, Product
-from app.schemas import OrderCreate, OrderOut
+from app.models.hospitality import AuditLog, DiningTable, Order, OrderLine, Product
+from app.schemas import OrderCreate, OrderLineCreate, OrderOut
 
 router = APIRouter(prefix="/api/v1/orders", tags=["orders"])
 
@@ -136,3 +136,169 @@ async def kitchen_queue(ctx: TenantContext = Depends(get_tenant_context), db: As
         "notes": line.notes,
         "kitchen_status": line.kitchen_status,
     } for order, line in rows]
+
+
+class DiscountRequest(__import__("pydantic").BaseModel):
+    kind: str = __import__("pydantic").Field(pattern="^(amount|percent)$")
+    value: Decimal = __import__("pydantic").Field(gt=0, max_digits=12, decimal_places=2)
+    reason: str = __import__("pydantic").Field(min_length=2, max_length=240)
+
+
+class MoveTableRequest(__import__("pydantic").BaseModel):
+    table_id: __import__("uuid").UUID | None = None
+
+
+class SplitLineRequest(__import__("pydantic").BaseModel):
+    line_id: __import__("uuid").UUID
+    quantity: Decimal = __import__("pydantic").Field(gt=0, max_digits=10, decimal_places=3)
+
+
+class SplitOrderRequest(__import__("pydantic").BaseModel):
+    lines: list[SplitLineRequest] = __import__("pydantic").Field(min_length=1)
+
+
+async def _recalculate_order(db: AsyncSession, order: Order, ctx: TenantContext):
+    lines = list(await db.scalars(select(OrderLine).where(
+        OrderLine.order_id == order.id,
+        OrderLine.tenant_id == ctx.tenant_id,
+        OrderLine.venue_id == ctx.venue_id,
+    )))
+    subtotal = sum((line.line_total for line in lines), Decimal("0.00"))
+    order.subtotal = money(subtotal)
+    order.total = money(max(Decimal("0.00"), subtotal - order.discount_total))
+    order.tax_total = money(sum(
+        (line.line_total * line.tax_rate / (Decimal("100") + line.tax_rate) for line in lines),
+        Decimal("0.00"),
+    ) * (order.total / subtotal if subtotal else Decimal("0.00")))
+
+
+@router.post("/{order_id}/lines", status_code=201)
+async def add_order_lines(order_id: str, payload: list[OrderLineCreate], ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    order = await db.scalar(select(Order).where(
+        Order.id == order_id, Order.tenant_id == ctx.tenant_id,
+        Order.venue_id == ctx.venue_id, Order.status.in_(["open", "sent", "preparing"]),
+    ))
+    if order is None:
+        raise HTTPException(status_code=404, detail="Comanda abierta no encontrada.")
+    for requested in payload:
+        product = await db.scalar(select(Product).where(
+            Product.id == requested.product_id, Product.tenant_id == ctx.tenant_id,
+            Product.venue_id == ctx.venue_id, Product.active.is_(True),
+        ))
+        if product is None:
+            raise HTTPException(status_code=404, detail="Producto no disponible.")
+        line_total = money(product.price * requested.quantity)
+        db.add(OrderLine(
+            tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, order_id=order.id,
+            product_id=product.id, product_name=product.name, quantity=requested.quantity,
+            unit_price=product.price, line_total=line_total, tax_rate=product.tax_rate,
+            notes=requested.notes,
+        ))
+    await db.flush()
+    await _recalculate_order(db, order, ctx)
+    db.add(AuditLog(
+        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, actor_user_id=ctx.user_id,
+        action="order.lines_added", entity_type="order", entity_id=order.id,
+        details={"count": len(payload)},
+    ))
+    await db.commit()
+    await db.refresh(order)
+    return {"order_id": str(order.id), "total": str(order.total), "status": order.status}
+
+
+@router.patch("/{order_id}/table")
+async def move_order_table(order_id: str, payload: MoveTableRequest, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    order = await db.scalar(select(Order).where(
+        Order.id == order_id, Order.tenant_id == ctx.tenant_id,
+        Order.venue_id == ctx.venue_id, Order.status != "paid",
+    ))
+    if order is None:
+        raise HTTPException(status_code=404, detail="Cuenta abierta no encontrada.")
+    if payload.table_id:
+        table = await db.scalar(select(DiningTable).where(
+            DiningTable.id == payload.table_id, DiningTable.tenant_id == ctx.tenant_id,
+            DiningTable.venue_id == ctx.venue_id, DiningTable.active.is_(True),
+        ))
+        if table is None:
+            raise HTTPException(status_code=404, detail="Mesa destino no encontrada.")
+    order.table_id = payload.table_id
+    db.add(AuditLog(
+        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, actor_user_id=ctx.user_id,
+        action="order.table_changed", entity_type="order", entity_id=order.id,
+        details={"table_id": str(payload.table_id) if payload.table_id else None},
+    ))
+    await db.commit()
+    return {"order_id": str(order.id), "table_id": str(order.table_id) if order.table_id else None}
+
+
+@router.post("/{order_id}/discount")
+async def apply_discount(order_id: str, payload: DiscountRequest, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    order = await db.scalar(select(Order).where(
+        Order.id == order_id, Order.tenant_id == ctx.tenant_id,
+        Order.venue_id == ctx.venue_id, Order.status != "paid",
+    ))
+    if order is None:
+        raise HTTPException(status_code=404, detail="Cuenta abierta no encontrada.")
+    discount = order.subtotal * payload.value / Decimal("100") if payload.kind == "percent" else payload.value
+    if discount > order.subtotal:
+        raise HTTPException(status_code=409, detail="El descuento no puede superar el importe de la cuenta.")
+    order.discount_total = money(discount)
+    order.total = money(order.subtotal - order.discount_total)
+    if order.subtotal:
+        order.tax_total = money(order.tax_total * order.total / order.subtotal)
+    db.add(AuditLog(
+        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, actor_user_id=ctx.user_id,
+        action="order.discount_applied", entity_type="order", entity_id=order.id,
+        details={"kind": payload.kind, "value": str(payload.value), "reason": payload.reason},
+    ))
+    await db.commit()
+    return {"order_id": str(order.id), "discount_total": str(order.discount_total), "total": str(order.total)}
+
+
+@router.post("/{order_id}/split", status_code=201)
+async def split_order(order_id: str, payload: SplitOrderRequest, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    source = await db.scalar(select(Order).where(
+        Order.id == order_id, Order.tenant_id == ctx.tenant_id,
+        Order.venue_id == ctx.venue_id, Order.status.in_(["open", "sent", "preparing", "ready"]),
+    ))
+    if source is None:
+        raise HTTPException(status_code=404, detail="Cuenta abierta no encontrada.")
+    new_order = Order(
+        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id,
+        order_number=randbelow(900000)+100000, table_id=source.table_id,
+        customer_id=source.customer_id, channel=source.channel, status="open",
+        notes="Cuenta dividida desde #" + str(source.order_number),
+    )
+    db.add(new_order)
+    await db.flush()
+    for requested in payload.lines:
+        line = await db.scalar(select(OrderLine).where(
+            OrderLine.id == requested.line_id, OrderLine.order_id == source.id,
+            OrderLine.tenant_id == ctx.tenant_id, OrderLine.venue_id == ctx.venue_id,
+        ))
+        if line is None or requested.quantity > line.quantity:
+            raise HTTPException(status_code=409, detail="Cantidad o línea no válida para dividir.")
+        moved_total = money(line.unit_price * requested.quantity)
+        db.add(OrderLine(
+            tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, order_id=new_order.id,
+            product_id=line.product_id, product_name=line.product_name, quantity=requested.quantity,
+            unit_price=line.unit_price, line_total=moved_total, tax_rate=line.tax_rate,
+            modifiers=line.modifiers, notes=line.notes,
+        ))
+        remaining = line.quantity - requested.quantity
+        if remaining == 0:
+            await db.delete(line)
+        else:
+            line.quantity = remaining
+            line.line_total = money(line.unit_price * remaining)
+    await db.flush()
+    await _recalculate_order(db, source, ctx)
+    await _recalculate_order(db, new_order, ctx)
+    db.add(AuditLog(
+        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, actor_user_id=ctx.user_id,
+        action="order.split", entity_type="order", entity_id=source.id,
+        details={"new_order_id": str(new_order.id)},
+    ))
+    await db.commit()
+    await db.refresh(new_order)
+    return {"new_order_id": str(new_order.id), "new_order_number": new_order.order_number, "total": str(new_order.total)}
