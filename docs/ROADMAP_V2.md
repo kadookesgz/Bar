@@ -10,7 +10,7 @@ El alcance toma como referencia las categorías públicas de HIOPOS para hostele
 - [x] Zonas, mesas y gestión inicial de varios establecimientos.
 - [x] Comandas, líneas de pedido y modificadores/suplementos asociados a productos.
 - [x] Cambio de mesa, descuento manual y división básica de cuenta por líneas mediante API.
-- [x] Cobros parciales y varios métodos de pago.
+- [x] Cobros parciales, varios métodos de pago y registro de reembolsos parciales.
 - [x] Apertura/cierre de caja y arqueo.
 - [x] KDS básico con estados y eventos.
 - [x] QR por mesa con token revocable, PNG local imprimible, carta y pedido móvil.
@@ -23,13 +23,15 @@ El alcance toma como referencia las categorías públicas de HIOPOS para hostele
 - [x] Empleados, perfiles, planificación básica de turnos y alta de establecimientos adicionales.
 - [x] Clientes y puntos de fidelización.
 - [x] Informe diario de ventas y productos.
-- [x] PWA responsive y Docker Compose con PostgreSQL/Alembic.
+- [x] PWA responsive, ticket imprimible en navegador y Docker Compose con PostgreSQL/Alembic.
+- [x] Cola local outbox transaccional para eventos de pedidos, cobros, reservas y stock.
 
 ## Fase 1 — Consolidar el núcleo del TPV
 - [ ] Pruebas automatizadas de todos los flujos y aislamiento multiempresa.
 - [ ] Concurrencia: numeración de tickets, bloqueo de cuentas, idempotencia de cobros.
 - [ ] Añadir productos a cuentas ya abiertas desde la pantalla táctil del TPV (API disponible).
-- [x] Integrar modificadores y suplementos en la toma de pedido y validar grupos obligatorios.\n- [ ] Completar formatos/variantes de producto y selección visual avanzada de modificadores.
+- [x] Integrar modificadores y suplementos en la toma de pedido y validar grupos obligatorios.
+- [ ] Completar formatos/variantes de producto y selección visual avanzada de modificadores.
 - [ ] Aplicar automáticamente tarifas por zona y reglas de precios.
 - [ ] Completar devoluciones, anulaciones, reembolsos y trazabilidad de caja.
 - [ ] Añadir impresora de tickets, impresoras por estación y cajón portamonedas.
@@ -61,6 +63,7 @@ El alcance toma como referencia las categorías públicas de HIOPOS para hostele
 
 ## Fase 4 — SaaS híbrido multiempresa
 - [ ] Servicio cloud de empresas, locales, licencias y planes.
+- [ ] Trabajador que entregue los eventos de la outbox al servidor cloud con reintentos y confirmación.
 - [ ] Sincronización local-nube mediante outbox/inbox, reintentos e idempotencia.
 - [ ] Resolución de conflictos y registro de auditoría.
 - [ ] Consola central para gestionar múltiples locales y cadenas.
