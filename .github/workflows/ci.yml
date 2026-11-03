@@ -9,18 +9,21 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install backend dependencies
-        run: pip install -r backend/requirements.txt
+        run: pip install -r requirements.txt
       - name: Compile Python modules
-        run: python -m compileall -q backend
+        run: python -m compileall -q .
       - name: Import application and register schema
         env:
-          PYTHONPATH: backend
+          PYTHONPATH: .
           ENVIRONMENT: test
           DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
           JWT_SECRET: ci-only-secret-ci-only-secret-ci-only-secret-ci-only-secret
