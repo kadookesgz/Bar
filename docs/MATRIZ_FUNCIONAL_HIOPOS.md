@@ -26,7 +26,7 @@ La matriz describe el estado real de nuestra rama `v2-hybrid-architecture`; no i
 | Fidelización | Básico: puntos manuales; faltan reglas automáticas, recompensas y campañas |
 | Promociones | Básico: descuento fijo/porcentual y código; faltan 2x1, 3x2, happy hour y reglas combinadas |
 | Empleados | Básico: usuarios, perfiles y turnos programados; falta fichaje, ausencias y coste laboral |
-| Caja y pagos | Básico: turnos, arqueo, cobro parcial, reembolso registrado; faltan integración PINPAD, CashDro y pagos QR |
+| Caja y pagos | Básico: turnos, arqueo, cobros parciales, reembolsos parciales y ticket imprimible desde navegador; faltan integración PINPAD, CashDro y pagos QR |
 | Impresión/periféricos | Ticket HTML imprimible; faltan ESC/POS, impresoras por estación, visor y cajón |
 | Informes/Analytics | Básico: informe diario; faltan paneles avanzados y consolidación multi-local |
 | Contabilidad/finanzas | Pendiente |
@@ -35,7 +35,7 @@ La matriz describe el estado real de nuestra rama `v2-hybrid-architecture`; no i
 | Web del establecimiento | Pendiente |
 | Kiosco/autoservicio | Pendiente |
 | Multiempresa/multilocal | Modelo y API inicial para empresa/locales; SaaS central y administración comercial pendientes |
-| Híbrido local-nube | Outbox local transaccional implementada; sincronizador y servidor cloud pendientes |
+| Híbrido local-nube | Outbox local transaccional implementada para pedidos, cobros, reservas y stock; sincronizador y servidor cloud pendientes |
 | IA documental/Voicebot | Pendiente |
 | Trazabilidad alimentaria | Pendiente |
 
