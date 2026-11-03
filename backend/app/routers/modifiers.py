@@ -34,13 +34,18 @@ async def list_groups(ctx: TenantContext = Depends(get_tenant_context), db: Asyn
     ).order_by(ModifierGroup.name))
     output = []
     for group in groups:
-        product_links = await db.scalars(select(ProductModifierGroup).where(\n            ProductModifierGroup.group_id == group.id, ProductModifierGroup.tenant_id == ctx.tenant_id,\n            ProductModifierGroup.venue_id == ctx.venue_id,\n        ))\n        modifiers = await db.scalars(select(Modifier).where(
+        product_links = await db.scalars(select(ProductModifierGroup).where(
+            ProductModifierGroup.group_id == group.id, ProductModifierGroup.tenant_id == ctx.tenant_id,
+            ProductModifierGroup.venue_id == ctx.venue_id,
+        ))
+        modifiers = await db.scalars(select(Modifier).where(
             Modifier.group_id == group.id, Modifier.tenant_id == ctx.tenant_id,
             Modifier.venue_id == ctx.venue_id, Modifier.active.is_(True),
         ))
         output.append({
             "id": str(group.id), "name": group.name, "min_select": group.min_select,
-            "max_select": group.max_select, "required": group.required,\n            "product_ids": [str(link.product_id) for link in product_links],
+            "max_select": group.max_select, "required": group.required,
+            "product_ids": [str(link.product_id) for link in product_links],
             "modifiers": [{"id": str(m.id), "name": m.name, "price_delta": str(m.price_delta)} for m in modifiers],
         })
     return output
