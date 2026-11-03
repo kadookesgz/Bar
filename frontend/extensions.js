@@ -404,7 +404,10 @@
           (Number(p.refundable) > 0 ? '<button class="danger refund-button" data-payment-id="' + p.id + '" style="padding:6px 9px;margin-top:5px">Reembolsar</button>' : '<span class="pill">Liquidado</span>') +
           '</div></div>';
       }).join("") || '<div class="empty">Todavía no hay cobros registrados</div>';
-      root.querySelectorAll(".receipt-button").forEach(function (button) {\n        button.onclick = function () { printReceipt(button.dataset.orderId); };\n      });\n      root.querySelectorAll(".refund-button").forEach(function (button) {
+      root.querySelectorAll(".receipt-button").forEach(function (button) {
+        button.onclick = function () { printReceipt(button.dataset.orderId); };
+      });
+      root.querySelectorAll(".refund-button").forEach(function (button) {
         button.onclick = function () { refundPayment(button.dataset.paymentId); };
       });
     } catch (err) { root.innerHTML = '<div class="notice">' + esc(err.message) + '</div>'; }
