@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
+from app.core.sync import record_sync_event
 from app.db import get_db
 from app.models.hospitality import DiningTable, Order, OrderLine, Product
 
@@ -108,5 +109,6 @@ async def create_qr_order(token: str, payload: QROrderCreate, db: AsyncSession =
     for line in lines:
         line.order_id = order.id
         db.add(line)
+    record_sync_event(db, TenantContext(user_id=UUID(int=0), tenant_id=table.tenant_id, venue_id=table.venue_id, role="qr"), aggregate_type="order", aggregate_id=order.id, event_type="order.qr_created", payload={"order_number":order.order_number,"total":str(order.total),"table_id":str(table.id)})
     await db.commit()
     return {"order_id": str(order.id), "order_number": order.order_number, "status": order.status, "total": str(order.total)}
