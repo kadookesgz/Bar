@@ -250,3 +250,31 @@ async def refund_payment(payment_id: UUID, payload: RefundRequest, ctx: TenantCo
     record_sync_event(db, ctx, aggregate_type="refund", aggregate_id=refund.id, event_type="payment.refunded", payload={"payment_id":str(payment.id),"amount":str(payload.amount),"method":payload.method})
     await db.commit()
     return {"refund_id": str(refund.id), "payment_id": str(payment.id), "refunded": str(payload.amount), "remaining_refundable": str(remaining-payload.amount)}
+
+
+@router.get("/payments")
+async def recent_payments(limit: int = 50, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import func
+    safe_limit = max(1, min(limit, 200))
+    rows = await db.scalars(select(Payment).where(
+        Payment.tenant_id == ctx.tenant_id, Payment.venue_id == ctx.venue_id,
+        Payment.status == "captured",
+    ).order_by(Payment.paid_at.desc()).limit(safe_limit))
+    output = []
+    for payment in rows:
+        order = await db.scalar(select(Order).where(
+            Order.id == payment.order_id, Order.tenant_id == ctx.tenant_id,
+            Order.venue_id == ctx.venue_id,
+        ))
+        refunded = await db.scalar(select(func.coalesce(func.sum(Refund.amount), 0)).where(
+            Refund.payment_id == payment.id, Refund.tenant_id == ctx.tenant_id,
+            Refund.venue_id == ctx.venue_id, Refund.status == "completed",
+        ))
+        output.append({
+            "id": str(payment.id), "order_number": order.order_number if order else None,
+            "amount": str(payment.amount), "method": payment.method,
+            "refunded": str(refunded or 0),
+            "refundable": str(payment.amount - Decimal(refunded or 0)),
+            "paid_at": payment.paid_at.isoformat(),
+        })
+    return output
