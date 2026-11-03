@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
+from app.core.sync import record_sync_event
 from app.db import get_db
 from app.models.hospitality import DiningTable, Reservation
 
@@ -54,6 +55,8 @@ async def create_reservation(payload: ReservationCreate, ctx: TenantContext = De
             raise HTTPException(status_code=404, detail="Mesa no encontrada.")
     item = Reservation(tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, **payload.model_dump())
     db.add(item)
+    await db.flush()
+    record_sync_event(db, ctx, aggregate_type="reservation", aggregate_id=item.id, event_type="reservation.created", payload={"customer_name":item.customer_name,"party_size":item.party_size,"starts_at":item.starts_at.isoformat()})
     await db.commit()
     await db.refresh(item)
     return {"id": str(item.id), "status": item.status}
