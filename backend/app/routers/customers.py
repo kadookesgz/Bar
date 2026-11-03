@@ -20,7 +20,7 @@ class CustomerCreate(BaseModel):
 
 
 class LoyaltyAdjustment(BaseModel):
-    points: int = Field(ne=0, ge=-100000, le=100000)
+    points: int = Field(ge=-100000, le=100000)
     reason: str = Field(min_length=2, max_length=240)
 
 
@@ -48,6 +48,8 @@ async def adjust_points(customer_id: UUID, payload: LoyaltyAdjustment, ctx: Tena
     ))
     if item is None:
         raise HTTPException(status_code=404, detail="Cliente no encontrado.")
+    if payload.points == 0:
+        raise HTTPException(status_code=422, detail="El ajuste de puntos no puede ser cero.")
     if item.loyalty_points + payload.points < 0:
         raise HTTPException(status_code=409, detail="El saldo de puntos no puede ser negativo.")
     item.loyalty_points += payload.points
