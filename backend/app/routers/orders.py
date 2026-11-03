@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
 from app.db import get_db
-from app.models.hospitality import AuditLog, DiningTable, Modifier, ModifierGroup, Order, OrderLine, Product, ProductModifierGroup
+from app.models.hospitality import AuditLog, DiningTable, Modifier, ModifierGroup, Order, OrderLine, Payment, Product, ProductModifierGroup
 from app.schemas import OrderCreate, OrderLineCreate, OrderOut
 
 router = APIRouter(prefix="/api/v1/orders", tags=["orders"])
@@ -283,9 +283,16 @@ async def apply_discount(order_id: str, payload: DiscountRequest, ctx: TenantCon
     ))
     if order is None:
         raise HTTPException(status_code=404, detail="Cuenta abierta no encontrada.")
+    from sqlalchemy import func
+    paid_total = await db.scalar(select(func.coalesce(func.sum(Payment.amount), 0)).where(
+        Payment.order_id == order.id, Payment.tenant_id == ctx.tenant_id,
+        Payment.venue_id == ctx.venue_id, Payment.status == "captured",
+    ))
     discount = order.subtotal * payload.value / Decimal("100") if payload.kind == "percent" else payload.value
     if discount > order.subtotal:
         raise HTTPException(status_code=409, detail="El descuento no puede superar el importe de la cuenta.")
+    if order.subtotal - discount < Decimal(paid_total or 0):
+        raise HTTPException(status_code=409, detail="El descuento no puede dejar el total por debajo de lo ya cobrado.")
     order.discount_total = money(discount)
     order.total = money(order.subtotal - order.discount_total)
     if order.subtotal:
@@ -307,6 +314,15 @@ async def split_order(order_id: str, payload: SplitOrderRequest, ctx: TenantCont
     ))
     if source is None:
         raise HTTPException(status_code=404, detail="Cuenta abierta no encontrada.")
+    if order.discount_total > 0:
+        raise HTTPException(status_code=409, detail="Retira el descuento antes de dividir la cuenta.")
+    from sqlalchemy import func
+    paid_total = await db.scalar(select(func.coalesce(func.sum(Payment.amount), 0)).where(
+        Payment.order_id == source.id, Payment.tenant_id == ctx.tenant_id,
+        Payment.venue_id == ctx.venue_id, Payment.status == "captured",
+    ))
+    if Decimal(paid_total or 0) > 0:
+        raise HTTPException(status_code=409, detail="No se puede dividir una cuenta que ya tiene cobros registrados.")
     new_order = Order(
         tenant_id=ctx.tenant_id, venue_id=ctx.venue_id,
         order_number=randbelow(900000)+100000, table_id=source.table_id,
