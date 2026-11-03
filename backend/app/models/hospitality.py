@@ -136,6 +136,12 @@ class Order(ScopedRecord, Base):
     tax_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0, nullable=False)
     total: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0, nullable=False)
     notes: Mapped[str | None] = mapped_column(Text)
+    customer_name: Mapped[str | None] = mapped_column(String(160))
+    customer_phone: Mapped[str | None] = mapped_column(String(40))
+    delivery_address: Mapped[str | None] = mapped_column(Text)
+    scheduled_for: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    external_source: Mapped[str | None] = mapped_column(String(80))
+    external_reference: Mapped[str | None] = mapped_column(String(120))
     opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
