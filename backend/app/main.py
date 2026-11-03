@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.db import engine
 from app.models import Base  # Importa todos los modelos para registrar el metadata.
-from app.routers import catalog, floor, management, orders
+from app.routers import auth, catalog, floor, management, orders, setup
 
 settings = get_settings()
 
@@ -39,6 +39,8 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-Tenant-ID", "X-Venue-ID"],
 )
 
+app.include_router(setup.router)
+app.include_router(auth.router)
 app.include_router(catalog.router)
 app.include_router(floor.router)
 app.include_router(orders.router)
