@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
+from html import escape as html_escape
 from secrets import randbelow
 from uuid import UUID
 from pydantic import BaseModel, Field
@@ -408,8 +409,8 @@ async def print_receipt(order_id: UUID, ctx: TenantContext = Depends(get_tenant_
         OrderLine.venue_id == ctx.venue_id,
     ))
     rows = "".join(
-        "<tr><td>" + line.product_name + "</td><td>" + str(line.quantity) +
-        "</td><td>" + str(line.line_total) + " €</td></tr>"
+        "<tr><td>" + html_escape(line.product_name) + "</td><td>" + html_escape(str(line.quantity)) +
+        "</td><td>" + html_escape(str(line.line_total)) + " €</td></tr>"
         for line in lines
     )
     html = """<!doctype html><html lang="es"><meta charset="utf-8"><title>Ticket</title>
