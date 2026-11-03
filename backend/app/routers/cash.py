@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.context import TenantContext, get_tenant_context
 from app.core.sync import record_sync_event
 from app.db import get_db
-from app.models.hospitality import CashMovement, CashRegister, CashShift, Order, Payment
+from app.models.hospitality import AuditLog, CashMovement, CashRegister, CashShift, Order, Payment, Refund
 
 router = APIRouter(prefix="/api/v1/cash", tags=["cash and payments"])
 
@@ -203,3 +203,50 @@ async def order_balance(order_id: UUID, ctx: TenantContext = Depends(get_tenant_
         "remaining": str(max(Decimal("0.00"), order.total - paid_total)),
         "status": order.status,
     }
+
+
+class RefundRequest(BaseModel):
+    amount: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
+    method: str = Field(pattern="^(cash|card|transfer|other)$")
+    reason: str = Field(min_length=3, max_length=240)
+
+
+@router.post("/payments/{payment_id}/refund", status_code=201)
+async def refund_payment(payment_id: UUID, payload: RefundRequest, ctx: TenantContext = Depends(get_tenant_context), db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import func
+    payment = await db.scalar(select(Payment).where(
+        Payment.id == payment_id, Payment.tenant_id == ctx.tenant_id,
+        Payment.venue_id == ctx.venue_id, Payment.status == "captured",
+    ))
+    if payment is None:
+        raise HTTPException(status_code=404, detail="Cobro no encontrado.")
+    refunded = await db.scalar(select(func.coalesce(func.sum(Refund.amount), 0)).where(
+        Refund.payment_id == payment.id, Refund.tenant_id == ctx.tenant_id,
+        Refund.venue_id == ctx.venue_id, Refund.status == "completed",
+    ))
+    remaining = payment.amount - Decimal(refunded or 0)
+    if payload.amount > remaining:
+        raise HTTPException(status_code=409, detail=f"El reembolso supera el importe reembolsable ({remaining:.2f} €).")
+    shift = None
+    if payload.method == "cash":
+        shift = await db.scalar(select(CashShift).where(
+            CashShift.tenant_id == ctx.tenant_id, CashShift.venue_id == ctx.venue_id,
+            CashShift.status == "open",
+        ).order_by(CashShift.opened_at.desc()))
+        if shift is None:
+            raise HTTPException(status_code=409, detail="Abre caja para registrar un reembolso en efectivo.")
+        shift.expected_cash -= payload.amount
+    refund = Refund(
+        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, payment_id=payment.id,
+        amount=payload.amount, method=payload.method, reason=payload.reason,
+        refunded_by=ctx.user_id, status="completed",
+    )
+    db.add(refund)
+    db.add(AuditLog(
+        tenant_id=ctx.tenant_id, venue_id=ctx.venue_id, actor_user_id=ctx.user_id,
+        action="payment.refunded", entity_type="payment", entity_id=payment.id,
+        details={"amount": str(payload.amount), "method": payload.method, "reason": payload.reason},
+    ))
+    record_sync_event(db, ctx, aggregate_type="refund", aggregate_id=refund.id, event_type="payment.refunded", payload={"payment_id":str(payment.id),"amount":str(payload.amount),"method":payload.method})
+    await db.commit()
+    return {"refund_id": str(refund.id), "payment_id": str(payment.id), "refunded": str(payload.amount), "remaining_refundable": str(remaining-payload.amount)}
