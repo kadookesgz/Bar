@@ -80,6 +80,6 @@ async def pwa_manifest():
     return FileResponse(Path(__file__).resolve().parents[2] / "frontend" / "manifest.webmanifest", media_type="application/manifest+json")
 
 
-@app.get("/sw.js", include_in_schema=False)
+@app.get("/extensions.js", include_in_schema=False)\nasync def ui_extensions():\n    return FileResponse(Path(__file__).resolve().parents[2] / "frontend" / "extensions.js", media_type="application/javascript")\n\n\n@app.get("/sw.js", include_in_schema=False)
 async def service_worker():
     return FileResponse(Path(__file__).resolve().parents[2] / "frontend" / "sw.js", media_type="application/javascript")
