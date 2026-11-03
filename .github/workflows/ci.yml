@@ -42,5 +42,12 @@ jobs:
         run: python -m compileall -q .
       - name: Import application and register schema
         run: python -c "from app.main import app; from app.models import Base; print(app.title, len(Base.metadata.tables))"
+      - name: Check browser JavaScript
+        run: |
+          node --check ../frontend/extensions.js
+          python -c "import pathlib,re; p=pathlib.Path('../frontend/index.html').read_text(); pathlib.Path('/tmp/tpv-pos.js').write_text(re.search(r'<script>(.*?)</script>',p,re.S).group(1))"
+          python -c "import pathlib,re; p=pathlib.Path('../frontend/qr.html').read_text(); pathlib.Path('/tmp/tpv-qr.js').write_text(re.search(r'<script>(.*?)</script>',p,re.S).group(1))"
+          node --check /tmp/tpv-pos.js
+          node --check /tmp/tpv-qr.js
       - name: Apply database migrations
         run: alembic -c ../alembic.ini upgrade head
