@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.db import engine
 from app.models import Base  # Importa todos los modelos para registrar el metadata.
-from app.routers import auth, cash, catalog, floor, inventory, kitchen, management, orders, reservations, setup
+from app.routers import auth, cash, catalog, employees, floor, inventory, kitchen, management, online, orders, reservations, setup
 
 settings = get_settings()
 
@@ -47,6 +47,8 @@ app.include_router(cash.router)
 app.include_router(kitchen.router)
 app.include_router(reservations.router)
 app.include_router(inventory.router)
+app.include_router(employees.router)
+app.include_router(online.router)
 app.include_router(catalog.router)
 app.include_router(floor.router)
 app.include_router(orders.router)
@@ -75,7 +77,7 @@ async def pos_app():
     return FileResponse(ui_path)
 
 
-@app.get("/manifest.webmanifest", include_in_schema=False)
+@app.get("/qr/{token}", include_in_schema=False)\nasync def public_qr_app(token: str):\n    return FileResponse(Path(__file__).resolve().parents[2] / "frontend" / "qr.html")\n\n\n@app.get("/manifest.webmanifest", include_in_schema=False)
 async def pwa_manifest():
     return FileResponse(Path(__file__).resolve().parents[2] / "frontend" / "manifest.webmanifest", media_type="application/manifest+json")
 
