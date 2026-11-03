@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tpv}
+      POSTGRES_USER: ${POSTGRES_USER:-tpv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tpv} -d ${POSTGRES_DB:-tpv}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - tpv_internal
+
+  api:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      APP_NAME: TPV Hosteleria API
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tpv}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tpv}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:8000"
+    networks:
+      - tpv_internal
+
+volumes:
+  postgres_data:
+
+networks:
+  tpv_internal:
+    driver: bridge
