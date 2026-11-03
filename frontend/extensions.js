@@ -140,4 +140,29 @@
       await loadAll();
     } catch (err) { alert(err.message); }
   };
+
+  window.renderTables = function () {
+    const root = document.getElementById("tableGrid");
+    if (!root) return;
+    const occupied = new Set((orders || []).filter(function (o) { return o.table_id; }).map(function (o) { return o.table_id; }));
+    root.innerHTML = "";
+    (tables || []).forEach(function (table) {
+      const card = document.createElement("div");
+      card.className = "tablecard" + (occupied.has(table.id) ? " occupied" : "");
+      card.innerHTML = '<div class="tname">' + esc(table.label) + '</div><div class="tstate">' +
+        (occupied.has(table.id) ? "● Ocupada" : "○ Libre") + ' · ' + table.capacity + ' plazas</div>' +
+        '<div class="toolbar" style="margin-top:10px"><button class="secondary open-table" style="padding:6px 9px">Abrir</button><button class="qr-table" style="padding:6px 9px">QR</button></div>';
+      card.querySelector(".open-table").onclick = function () { selectTable(table.id); };
+      card.querySelector(".qr-table").onclick = async function () {
+        try {
+          const result = await api("/api/v1/floor/tables/" + table.id + "/qr-token", {method:"POST"});
+          const url = location.origin + result.menu_path;
+          prompt("Enlace privado de carta QR para " + table.label + ". Copia este enlace para generar/imprimir el QR:", url);
+        } catch (err) { alert(err.message); }
+      };
+      root.appendChild(card);
+    });
+    if (!tables.length) root.innerHTML = '<div class="empty">Todavía no hay mesas configuradas. Pulsa Nueva mesa.</div>';
+  };
+
 })();
