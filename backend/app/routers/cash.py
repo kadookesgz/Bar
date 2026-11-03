@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.context import TenantContext, get_tenant_context
+from app.core.sync import record_sync_event
 from app.db import get_db
 from app.models.hospitality import CashMovement, CashRegister, CashShift, Order, Payment
 
@@ -164,6 +165,7 @@ async def create_payment(payload: PaymentRequest, ctx: TenantContext = Depends(g
         status="captured",
     )
     db.add(payment)
+    record_sync_event(db, ctx, aggregate_type="payment", aggregate_id=payment.id, event_type="payment.captured", payload={"order_id": str(order.id), "method":payload.method, "amount":str(payload.amount)})
     if shift:
         shift.expected_cash += payload.amount
 
